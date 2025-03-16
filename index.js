@@ -4,6 +4,7 @@ import cors from "cors";
 
 import routes from "./routes/index.js";
 import { connectDB } from "./config/connectDB.js";
+import { cookieOptions } from "./routes/auth.js";
 import logger from "./middleware/logger.js";
 
 dotenv.config();
@@ -12,7 +13,7 @@ const port = process.env.PORT || 3000;
 
 // Middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors(cookieOptions));
 app.use(logger);
 
 // MongoDB Connection
