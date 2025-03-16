@@ -1,5 +1,4 @@
 // users related CRUD
-
 import express from "express";
 import { collections } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
@@ -17,9 +16,9 @@ router.post("/", async (req, res) => {
   }
   // if new user save data in db --->
   const result = await usersCollection.insertOne({
-    role: "user",
+    role: "Patient",
     ...user,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   });
   res.send({
     data: result,
