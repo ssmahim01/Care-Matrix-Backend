@@ -26,13 +26,15 @@ router.post("/jwt", (req, res) => {
   res
     .cookie("token", token, cookieOptions)
     .send({ token: token, success: true });
-}); // Api endpoint -> /auth/jwt
+}); 
+// Api endpoint -> /auth/jwt
 
 // Clear Jwt Token --->
 router.post("/logout", (req, res) => {
   res
     .clearCookie("token", { ...cookieOptions, maxAge: 0 })
     .send({ success: true });
-}); // Api endpoint -> /auth/logout
+}); 
+// Api endpoint -> /auth/logout
 
 export default router;
