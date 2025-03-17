@@ -1,7 +1,7 @@
 // users related CRUD
 
 import express from "express";
-import { collections, connectDB } from "../config/connectDB.js";
+import { connectDB } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
 const router = express.Router();
 
