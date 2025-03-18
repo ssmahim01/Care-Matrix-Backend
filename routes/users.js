@@ -40,6 +40,20 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Update user lastLoginAt --->
+router.put("/last-login-at/:email", async (req, res) => {
+  const email = req.params.email;
+  const userInfo = req.body;
+  const filter = { email };
+  const updatedUserInfo = {
+    $set: {
+      lastLoginAt: userInfo?.lastLoginAt,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUserInfo);
+  res.send({ data: result, message: "lastLoginAt Time updated successfully" });
+}); // Api endpoint -> /users/update-profile/:email
+
 // Update user profile --->
 router.put("/update-profile/:email", async (req, res) => {
   const email = req.params.email;
