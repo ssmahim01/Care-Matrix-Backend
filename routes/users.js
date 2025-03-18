@@ -5,7 +5,7 @@ import { connectDB } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
 const router = express.Router();
 
-// Get user collection for connectDB
+// Initialize usersCollection
 let usersCollection;
 async function initCollection() {
   const collections = await connectDB();
@@ -26,7 +26,6 @@ router.post("/", async (req, res) => {
   const result = await usersCollection.insertOne({
     role: "user",
     ...user,
-    createdAt: new Date(),
   });
   res.send({
     data: result,
