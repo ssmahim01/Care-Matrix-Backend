@@ -41,13 +41,13 @@ router.get("/role/:email", async (req, res) => {
 }); // Api endpoint -> /users/role/:email
 
 // Update user lastLoginAt --->
-router.put("/last-login-at/:email", async (req, res) => {
+router.patch("/last-login-at/:email", async (req, res) => {
   const email = req.params.email;
-  const userInfo = req.body;
+  const { lastLoginAt } = req.body;
   const filter = { email };
   const updatedUserInfo = {
     $set: {
-      lastLoginAt: userInfo?.lastLoginAt,
+      lastLoginAt: lastLoginAt,
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
