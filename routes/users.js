@@ -77,7 +77,10 @@ router.get("/", async (req, res) => {
       role: item?.role,
       name: item?.name,
       email: item?.email,
+      photo: item?.photo,
+      phoneNumber: item?.phoneNumber,
       createdAt: item?.createdAt,
+      lastLoginAt: item?.lastLoginAt,
     }))
   );
 }); // Api endpoint -> /users
