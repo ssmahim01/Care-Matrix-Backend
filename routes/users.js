@@ -1,13 +1,20 @@
 // users related CRUD
 import express from "express";
-import { collections } from "../config/connectDB.js";
+import { connectDB } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
 const router = express.Router();
+
+// Initialize usersCollection
+let usersCollection;
+async function initCollection() {
+  const collections = await connectDB();
+  usersCollection = collections.users;
+}
+await initCollection();
 
 // Post new user in db --->
 router.post("/", async (req, res) => {
   const user = req.body;
-  const usersCollection = await collections.users;
   // check if user is already exists--->
   const query = { email: user.email };
   const isExist = await usersCollection.findOne(query);
@@ -16,9 +23,8 @@ router.post("/", async (req, res) => {
   }
   // if new user save data in db --->
   const result = await usersCollection.insertOne({
-    role: "Patient",
+    role: "patient",
     ...user,
-    createdAt: new Date().toISOString(),
   });
   res.send({
     data: result,
@@ -29,15 +35,27 @@ router.post("/", async (req, res) => {
 // Get user role --->
 router.get("/role/:email", async (req, res) => {
   const email = req.params.email;
-  const usersCollection = await collections.users;
   const result = await usersCollection.findOne({ email });
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Update user lastLoginAt --->
+router.patch("/last-login-at/:email", async (req, res) => {
+  const email = req.params.email;
+  const { lastLoginAt } = req.body;
+  const filter = { email };
+  const updatedUserInfo = {
+    $set: {
+      lastLoginAt: lastLoginAt,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUserInfo);
+  res.send({ data: result, message: "lastLoginAt Time updated successfully" });
+}); // Api endpoint -> /users/update-profile/:email
+
 // Update user profile --->
 router.put("/update-profile/:email", async (req, res) => {
   const email = req.params.email;
-  const usersCollection = await collections.users;
   const userInfo = req.body;
   const filter = { email };
   const updatedUserInfo = {
@@ -52,7 +70,6 @@ router.put("/update-profile/:email", async (req, res) => {
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
-  const usersCollection = await collections.users;
   const result = await usersCollection.find().toArray();
   res.send(
     result.map((item) => ({
