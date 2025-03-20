@@ -10,7 +10,8 @@ router.post("/", async(req, res) => {
 
 })
 router.get("/", async (req, res) => {
-  res.send({ message: "Here is your appointment!" });
+  const result = await collections.appointments.find().toArray()
+  res.send(result);
 });
 // Api endpoint -> /appointment
 
