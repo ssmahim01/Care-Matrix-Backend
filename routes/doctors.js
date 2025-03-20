@@ -1,18 +1,35 @@
 import express from "express";
-import dotenv from "dotenv";
-import { collections, connectDB } from "../config/connectDB";
-dotenv.config();
+import { connectDB, collections } from "../config/connectDB.js";
 const router = express.Router();
 
-(async() => {
-    await connectDB();
-})()
-
-router.get("/dashboard/administrator/doctors", async(req, res) => {
-    if(collections?.doctors){
-        return res.status(500).send({message: "Doctors are unavailable"})
+let doctorsCollection;
+// Initialize Database Connection and Collections
+async function mongoDBCollection() {
+    try {
+        await connectDB();
+        doctorsCollection = collections.doctors;
+        console.log("Doctors collection initialized", doctorsCollection);
+    } catch (error) {
+        console.error("Error initializing database:", error);
     }
+}
 
-    const findResult = await collections.doctors.find().toArray();
-    res.send(findResult);
-})
+// Ensure the database is initialized before handling routes
+mongoDBCollection();
+
+router.get("/", async (req, res) => {
+    try {
+        if (!doctorsCollection) {
+            return res.status(500).send({ message: "Doctors collection is unavailable" });
+        }
+
+        const doctors = await doctorsCollection.find().toArray();
+        console.log(doctors);
+        res.status(200).send(doctors);
+    } catch (error) {
+        console.error("Error fetching doctors:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+export default router;
