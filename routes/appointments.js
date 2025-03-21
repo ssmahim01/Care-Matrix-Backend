@@ -1,5 +1,6 @@
 import express from "express";
 import { collections, connectDB } from "../config/connectDB.js";
+import { ObjectId } from "mongodb";
 const router = express.Router();
 
 
@@ -13,6 +14,13 @@ router.get("/", async (req, res) => {
   const result = await collections.appointments.find().toArray()
   res.send(result);
 });
+
+router.delete("/:id", async(req, res)=>{
+ const id = req.params.id;
+ const query = {_id: new ObjectId(id)}
+ const result = await collections.appointments.deleteOne(query)
+ res.send(result)
+})
 // Api endpoint -> /appointment
 
 export default router;
