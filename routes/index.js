@@ -3,6 +3,7 @@ import authRoutes from "./auth.js";
 import userRoutes from "./users.js";
 import appointmentRoutes from "./appointments.js";
 import banners from './banners.js'
+import bedsRoutes from './beds.js'
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use("/auth", authRoutes); // Jwt Api routes
 router.use("/users", userRoutes); // Users Api routes
 router.use("/appointments", appointmentRoutes); // Appointments Api routes
 router.use("/banners", banners) //banner apis routes 
+router.use("/beds", bedsRoutes) //beds apis routes 
 
 export default router;
