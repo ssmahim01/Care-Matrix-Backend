@@ -19,7 +19,7 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
-router.get("/", verifyToken, verifyAdministrator, async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         if (!doctorsCollection) {
             return res.status(500).send({ message: "Doctors collection is unavailable" });
@@ -33,5 +33,17 @@ router.get("/", verifyToken, verifyAdministrator, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
+
+router.post("/", async (req, res) => {
+    try {
+        const doctorData = req.body;
+        const newDoctor = { ...doctorData, workingHours: "09 AM - 05 PM", leaveStatus: "Available", shift: "Morning" }
+
+        const insertResult = await doctorsCollection.insertOne(newDoctor);
+        res.status(201).send({ message: "Doctor added successfully", insertResult});
+    } catch (error) {
+        res.status(500).send({ message: "Error adding the doctor", error });
+    }
+})
 
 export default router;
