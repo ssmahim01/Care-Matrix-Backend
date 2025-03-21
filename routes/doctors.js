@@ -1,5 +1,7 @@
 import express from "express";
 import { connectDB, collections } from "../config/connectDB.js";
+import verifyToken from "../middleware/verifyToken.js";
+import verifyAdministrator from "../middleware/verifyAdministrator.js";
 const router = express.Router();
 
 let doctorsCollection;
@@ -8,7 +10,7 @@ async function mongoDBCollection() {
     try {
         await connectDB();
         doctorsCollection = collections.doctors;
-        console.log("Doctors collection initialized", doctorsCollection);
+        console.log("Doctors collection initialized");
     } catch (error) {
         console.error("Error initializing database:", error);
     }
@@ -17,7 +19,7 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
-router.get("/", async (req, res) => {
+router.get("/", verifyToken, verifyAdministrator, async (req, res) => {
     try {
         if (!doctorsCollection) {
             return res.status(500).send({ message: "Doctors collection is unavailable" });
