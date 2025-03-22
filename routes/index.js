@@ -9,7 +9,7 @@ import bed_bookingRoutes from './bed_booking.js'
 
 const router = express.Router();
 
-// Root Api routes
+// Root Api route
 router.get("/", (req, res) => {
   res.send("Care-Matrix Server Is Running");
 });
