@@ -63,7 +63,10 @@ router.get("/manage-medicines", async (req, res) => {
       .limit(limit)
       .toArray();
 
-    res.send(result);
+    const totalMedicines = await medicinesCollection.countDocuments(query);
+    const totalPages = Math.ceil(totalMedicines / limit);
+
+    res.send({ totalPages, currentPage: page, medicines: result });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
