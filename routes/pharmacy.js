@@ -46,6 +46,7 @@ router.get("/medicines", async (req, res) => {
 
 router.get("/manage-medicines", async (req, res) => {
   try {
+    const sort = req.query.sort || "";
     const search = req.query.search || "";
     const category = req.query.category || "All Medicines";
 
@@ -57,8 +58,19 @@ router.get("/manage-medicines", async (req, res) => {
     if (category !== "All Medicines") query.category = category;
     if (search) query.brandName = { $regex: search, $options: "i" };
 
+    const sortOptions = {};
+    if (sort === "price-asc") sortOptions["price.amount"] = 1;
+    if (sort === "price-desc") sortOptions["price.amount"] = -1;
+    if (sort === "discountedPrice-asc") sortOptions[""] = 1;
+    if (sort === "discountedPrice-desc") sortOptions[""] = -1;
+    if (sort === "manufactureDate-asc") sortOptions[""] = 1;
+    if (sort === "manufactureDate-desc") sortOptions[""] = -1;
+    if (sort === "expiryDate-asc") sortOptions[""] = 1;
+    if (sort === "expiryDate-desc") sortOptions[""] = -1;
+
     const result = await medicinesCollection
       .find(query)
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit)
       .toArray();
@@ -70,6 +82,11 @@ router.get("/manage-medicines", async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
+});
+
+router.delete("/delete-medicine/:id", async (req, res) => {
+  const id = req.params.id;
+  // const
 });
 
 export default router;
