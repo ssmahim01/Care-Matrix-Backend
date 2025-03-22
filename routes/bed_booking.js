@@ -6,19 +6,19 @@ import {
 const router = express.Router();
 
 // Initialize bedsCollection
-let bedsCollection;
+let bed_bookingCollection;
 async function initCollection() {
     const collections = await connectDB();
-    bedsCollection = collections.beds;
+    bed_bookingCollection = collections.bed_booking;
 }
+
 await initCollection();
 
-router.get("/", async (req, res) => {
-
-    const result = await bedsCollection.find().toArray();
-    res.send(result);
-
-});
+router.post("/", async(req, res) => {
+    const bed_bookingInfo = await req.body;
+    const result = await bed_bookingCollection.insertOne(bed_bookingInfo)
+    res.send(result)
+})
 
 
 
