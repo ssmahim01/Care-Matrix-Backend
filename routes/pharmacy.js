@@ -87,8 +87,17 @@ router.get("/manage-medicines", async (req, res) => {
 });
 
 router.delete("/delete-medicine/:id", async (req, res) => {
-  const id = req.params.id;
-  // const
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await medicinesCollection.deleteOne(query);
+    res.send({
+      data: result,
+      message: "Medicine Deleted Successfully!",
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 });
 
 export default router;
