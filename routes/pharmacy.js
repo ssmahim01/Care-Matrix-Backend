@@ -37,7 +37,7 @@ router.get("/medicines", async (req, res) => {
       },
       imageURL: medicine?.imageURL,
     }));
-    
+
     res.send(medicines);
   } catch (error) {
     res.status(500).send({ message: error.message });
