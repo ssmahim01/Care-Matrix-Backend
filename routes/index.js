@@ -6,6 +6,7 @@ import banners from './banners.js'
 import bedsRoutes from './beds.js'
 import doctorRoutes from './doctors.js'
 import bed_bookingRoutes from './bed_booking.js'
+import pharmacyRoutes from './pharmacy.js'
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/banners", banners) //banner apis routes
 router.use("/beds", bedsRoutes) //beds apis routes 
 router.use("/dashboard/administrator/doctors", doctorRoutes) // API routes of Doctors
 router.use("/bed-booking", bed_bookingRoutes) //bed booking apis routes
+router.use("/pharmacy", pharmacyRoutes); // pharmacy Api routes
 
 export default router;
