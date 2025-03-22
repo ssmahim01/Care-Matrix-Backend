@@ -27,8 +27,24 @@ router.get("/", async (req, res) => {
         }
 
         const doctors = await doctorsCollection.find().toArray();
-        console.log(doctors);
         res.status(200).send(doctors);
+    } catch (error) {
+        console.error("Error fetching doctors:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+router.get("/:id", async (req, res) => {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    try {
+        if (!doctorsCollection) {
+            return res.status(500).send({ message: "Doctors collection is unavailable" });
+        }
+
+        const doctor = await doctorsCollection.findOne(query);
+        console.log(doctor);
+        res.status(200).send(doctor);
     } catch (error) {
         console.error("Error fetching doctors:", error);
         res.status(500).json({ message: "Internal Server Error" });
