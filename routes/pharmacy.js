@@ -61,12 +61,14 @@ router.get("/manage-medicines", async (req, res) => {
     const sortOptions = {};
     if (sort === "price-asc") sortOptions["price.amount"] = 1;
     if (sort === "price-desc") sortOptions["price.amount"] = -1;
-    if (sort === "discountedPrice-asc") sortOptions[""] = 1;
-    if (sort === "discountedPrice-desc") sortOptions[""] = -1;
-    if (sort === "manufactureDate-asc") sortOptions[""] = 1;
-    if (sort === "manufactureDate-desc") sortOptions[""] = -1;
-    if (sort === "expiryDate-asc") sortOptions[""] = 1;
-    if (sort === "expiryDate-desc") sortOptions[""] = -1;
+    if (sort === "discountedPrice-asc")
+      sortOptions["price.discount.discountedAmount"] = 1;
+    if (sort === "discountedPrice-desc")
+      sortOptions["price.discount.discountedAmount"] = -1;
+    if (sort === "manufactureDate-asc") sortOptions["manufactureDate"] = 1;
+    if (sort === "manufactureDate-desc") sortOptions["manufactureDate"] = -1;
+    if (sort === "expiryDate-asc") sortOptions["expiryDate"] = 1;
+    if (sort === "expiryDate-desc") sortOptions["expiryDate"] = -1;
 
     const result = await medicinesCollection
       .find(query)
