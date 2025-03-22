@@ -18,6 +18,7 @@ async function connectDB() {
     collections = {
       users: db.collection("users"),
       banners: db.collection("banners"),
+      appointments: db.collection("appointments"),
       doctors: db.collection("doctors")
     };
 
