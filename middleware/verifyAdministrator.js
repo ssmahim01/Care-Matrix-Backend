@@ -1,4 +1,4 @@
-import { collections, connectDB } from "../config/connectDB";
+import {connectDB, collections} from "../config/connectDB.js";
 
 // Initial collection
 let userCollection;
