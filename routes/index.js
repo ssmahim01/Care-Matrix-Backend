@@ -4,6 +4,7 @@ import userRoutes from "./users.js";
 import appointmentRoutes from "./appointments.js";
 import banners from './banners.js'
 import bedsRoutes from './beds.js'
+import doctorRoutes from './doctors.js'
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use("/users", userRoutes); // Users Api routes
 router.use("/appointments", appointmentRoutes); // Appointments Api routes
 router.use("/banners", banners) //banner apis routes 
 router.use("/beds", bedsRoutes) //beds apis routes 
+router.use("/dashboard/administrator/doctors", doctorRoutes) // API routes of Doctors
 
 export default router;
