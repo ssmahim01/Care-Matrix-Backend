@@ -58,4 +58,23 @@ router.delete("/:id", async (req, res) => {
     }
 })
 
+router.put("/:id", async(req, res) => {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const doctorData = req.body;
+
+    try {
+        const options = {upsert: true};
+        const updatedData = {
+            $set: {doctorData}
+        }
+
+        const updateResult = await doctorsCollection.updateOne(query, updatedData, options);
+
+        res.status(200).send({message: "Updated doctor info", updateResult});
+    } catch (error) {
+        res.status(500).send({message: "Error updating doctor", error});
+    }
+})
+
 export default router;
