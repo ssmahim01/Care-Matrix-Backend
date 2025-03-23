@@ -21,7 +21,7 @@ router.get("/medicines", async (req, res) => {
   try {
     const search = req.query.search || "";
     const category = req.query.category || "All Medicines";
-    
+
     const limit = 8;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
@@ -59,6 +59,16 @@ router.get("/medicines", async (req, res) => {
   }
 });
 
+router.get("/medicine/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await medicinesCollection.findOne(query);
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 
 router.get("/manage-medicines", async (req, res) => {
   try {
