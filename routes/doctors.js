@@ -11,7 +11,7 @@ async function mongoDBCollection() {
     try {
         await connectDB();
         doctorsCollection = collections.doctors;
-        console.log("Doctors collection initialized");
+        // console.log("Doctors collection initialized", doctorsCollection);
     } catch (error) {
         console.error("Error initializing database:", error);
     }
@@ -27,6 +27,7 @@ router.get("/", async (req, res) => {
         }
 
         const doctors = await doctorsCollection.find().toArray();
+        // console.log(doctors);
         res.status(200).send(doctors);
     } catch (error) {
         console.error("Error fetching doctors:", error);
