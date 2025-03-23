@@ -3,6 +3,7 @@ import { connectDB, collections } from "../config/connectDB.js";
 import verifyToken from "../middleware/verifyToken.js";
 import verifyAdministrator from "../middleware/verifyAdministrator.js";
 import { ObjectId } from "mongodb";
+import moment from "moment";
 const router = express.Router();
 
 let doctorsCollection;
@@ -55,14 +56,44 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const doctorData = req.body;
-        const newDoctor = { ...doctorData, workingHours: "09 AM - 05 PM", leaveStatus: "Available", shift: "Morning" }
+        // console.log(doctorData);
 
+        // Validate required fields
+        if (!doctorData.name || !doctorData.email || !doctorData.schedule || !doctorData.available_days) {
+            return res.status(400).send({ message: "Missing required fields: name, email, schedule, or available_days" });
+        }
+
+        // Default working hours
+        const workingHours = "09 AM - 05 PM";
+
+        // Determine status
+        const status = doctorData?.available_days.length > 0 ? "Available" : "Unavailable";
+
+        // Parse schedule time correctly
+        const scheduleTime = moment(doctorData?.schedule).utcOffset("+06:00").format("HH:mm");
+        const hour = parseInt(scheduleTime.split(":")[0]);
+
+        // Determine shift
+        let shift = "Morning";
+        if (hour >= 12 && hour < 17) shift = "Afternoon";
+        else if (hour >= 17) shift = "Evening";
+
+        // Create new doctor object with additional fields
+        const newDoctor = {
+            ...doctorData,
+            workingHours,
+            status,
+            shift
+        };
+
+        // Insert into database
         const insertResult = await doctorsCollection.insertOne(newDoctor);
-        res.status(201).send({ message: "Doctor added successfully", insertResult});
+        res.status(201).send({ message: "Doctor added successfully", insertResult });
+
     } catch (error) {
         res.status(500).send({ message: "Error adding the doctor", error });
     }
-})
+});
 
 router.delete("/:id", async (req, res) => {
     const id = req.params.id;
