@@ -21,12 +21,22 @@ router.get("/medicines", async (req, res) => {
   try {
     const search = req.query.search || "";
     const category = req.query.category || "All Medicines";
+    
+    const limit = 8;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
 
     const query = {};
     if (category !== "All Medicines") query.category = category;
     if (search) query.brandName = { $regex: search, $options: "i" };
 
-    const result = await medicinesCollection.find(query).toArray();
+    const total = await medicinesCollection.countDocuments(query);
+    const result = await medicinesCollection
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
     const medicines = result.map((medicine) => ({
       _id: medicine?._id,
       brandName: medicine?.brandName,
@@ -38,11 +48,17 @@ router.get("/medicines", async (req, res) => {
       imageURL: medicine?.imageURL,
     }));
 
-    res.send(medicines);
+    res.send({
+      medicines,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      totalItems: total,
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
 });
+
 
 router.get("/manage-medicines", async (req, res) => {
   try {
