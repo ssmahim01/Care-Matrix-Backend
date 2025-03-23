@@ -3,14 +3,15 @@ import { collections, connectDB } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
 const router = express.Router();
 
-
 router.post("/", async(req, res) => {
   const appointmentInfo = await req.body;
   const result = await collections.appointments.insertOne(appointmentInfo)
   res.send(result)
 
 })
-router.get("/", async (req, res) => {
+router.get("/:email", async (req, res) => {
+  const email = req.params.email;
+  console.log(email);
   const result = await collections.appointments.find().toArray()
   res.send(result);
 });
