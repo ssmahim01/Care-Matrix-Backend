@@ -90,7 +90,7 @@ router.get("/stats", async (req, res) => {
       {
         $project: {
           _id: 0,
-          manufacturer: "$_id",
+          supplier: "$_id",
           count: 1,
         },
       },
