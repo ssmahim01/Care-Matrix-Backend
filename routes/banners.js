@@ -23,6 +23,7 @@ router.post("/", async (req, res) => {
         res.status(500).json({ error: error.message })
     }
 })
+
 router.get('/', async (req, res) => {
     if (!collections.banners) {
         return res.status(500).json({ error: "Banners collection is not available." });

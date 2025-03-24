@@ -21,6 +21,14 @@ router.get("/", async (req, res) => {
 
 });
 
+router.post("/", async (req, res) => {
+    const bed = req.body
+    const result = await bedsCollection.insertOne(bed)
+    res.send(result)
+});
+
+
+
 
 router.patch("/status/:id", async (req, res) => {
     const id = req.params.id
