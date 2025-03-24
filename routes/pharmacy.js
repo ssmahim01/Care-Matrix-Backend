@@ -17,6 +17,19 @@ async function initCollection() {
 }
 await initCollection();
 
+router.post("/medicine", async (req, res) => {
+  try {
+    const medicine = req.body;
+    const result = await medicinesCollection.insertOne(medicine);
+    res.send({
+      data: result,
+      message: "Medicine Added To DB Successfully",
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 router.get("/medicines", async (req, res) => {
   try {
     const search = req.query.search || "";
