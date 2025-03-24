@@ -2,7 +2,6 @@
 
 import express from "express";
 import { connectDB } from "../config/connectDB.js";
-import { ObjectId } from "mongodb";
 const router = express.Router();
 
 // Initialize collections
