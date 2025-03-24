@@ -8,6 +8,7 @@ import paymentsRoutes from './payments.js'
 import bedsRoutes from './beds.js'
 import bed_bookingRoutes from './bed_booking.js'
 import pharmacyRoutes from './pharmacy.js'
+import carts from './carts.js'
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use("/beds", bedsRoutes) //beds apis routes
 router.use("/dashboard/administrator/doctors", doctorRoutes) // API routes of Doctors
 router.use("/bed-booking", bed_bookingRoutes) //bed booking apis routes
 router.use("/pharmacy", pharmacyRoutes); // pharmacy Api routes
+router.use("/carts", carts); // carts Api routes
 
 export default router;
