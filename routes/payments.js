@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
 import express from 'express';
-import { connectDB, collections } from '../config/connectDB.js';
 import Stripe from 'stripe';
+import { connectDB } from '../config/connectDB.js';
+dotenv.config();
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
