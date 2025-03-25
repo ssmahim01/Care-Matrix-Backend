@@ -45,16 +45,29 @@ router.get("/", async (req, res) => {
 router.patch("/status/:id", async (req, res) => {
   const id = req.params.id;
   const { status } = req.body;
-  // console.log(status, id);
+
   const filter = { _id: new ObjectId(id) };
   const updatedDoc = {
     $set: {
       status: status,
     },
   };
-  // console.log(status);
+
   const result = await collections.banners.updateOne(filter, updatedDoc);
   res.send(result);
 });
 
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await collections.banners.deleteOne(query);
+    res.send({
+      data: result,
+      message: "Banner Deleted Successfully!",
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 export default router;
