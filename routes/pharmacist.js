@@ -40,19 +40,25 @@ await initBannersCollection();
 
 router.get("/stats", async (req, res) => {
   const totalBanners = await bannersCollection.estimatedDocumentCount();
+
   const totalActive = await bannersCollection.countDocuments({
     status: "active",
   });
+
   const totalInActive = await bannersCollection.countDocuments({
     status: "inactive",
   });
+
   const totalMedicines = await medicinesCollection.estimatedDocumentCount();
+
   const totalInStockMedicines = await medicinesCollection.countDocuments({
     availabilityStatus: "In Stock",
   });
+
   const totalLimitedStockMedicines = await medicinesCollection.countDocuments({
     availabilityStatus: "Limited Stock",
   });
+  
   const totalOutOFStockMedicines = await medicinesCollection.countDocuments({
     availabilityStatus: "Out Of Stock",
   });
