@@ -15,7 +15,8 @@ const corsOptions = {
     "http://localhost:5173",
     "http://localhost:3000",
     "http://localhost:5174",
-    "https://care-matrix.web.app"
+    "https://care-matrix.web.app",
+    "https://care-matrix-with-dev-sync-hub.vercel.app"
   ],
   credentials: true,
   optionalSuccessStatus: 200,
