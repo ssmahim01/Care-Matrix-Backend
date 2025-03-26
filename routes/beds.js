@@ -14,6 +14,9 @@ async function initCollection() {
 }
 await initCollection();
 
+
+
+
 router.get("/", async (req, res) => {
 
     const result = await bedsCollection.find().toArray();
