@@ -3,21 +3,14 @@ import authRoutes from "./auth.js";
 import userRoutes from "./users.js";
 import appointmentRoutes from "./appointments.js";
 import banners from './banners.js';
-import doctorRoutes from './doctors.js';
 import paymentsRoutes from './payments.js'
 import bedsRoutes from './beds.js'
 import bed_bookingRoutes from './bed_booking.js'
 import pharmacyRoutes from './pharmacy.js'
 import carts from './carts.js'
 import purchase from './purchase.js'
-import banners from "./banners.js";
 import doctorRoutes from "./doctors.js";
-import paymentsRoutes from "./payments.js";
-import bedsRoutes from "./beds.js";
-import bed_bookingRoutes from "./bed_booking.js";
-import pharmacyRoutes from "./pharmacy.js";
 import pharmacistRoutes from "./pharmacist.js";
-import carts from "./carts.js";
 
 const router = express.Router();
 

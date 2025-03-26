@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
 const router = express.Router();
 const saltRounds = 10;
+import jwt from "jsonwebtoken";
 
 // Hashing password
 const hashPassword = async (password) => {
@@ -23,7 +24,12 @@ await initCollection();
 router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
-  const hashedPassword = await hashPassword(password);
+ 
+  // If new user, handle password for non-social sign-ins
+  let hashedPassword = null;
+  if (password) {
+    hashedPassword = await hashPassword(password);
+  }
   // check if user is already exists--->
   const query = { email: user.email };
   const isExist = await usersCollection.findOne(query);
@@ -34,7 +40,7 @@ router.post("/", async (req, res) => {
   const result = await usersCollection.insertOne({
     role: "patient",
     ...user,
-    password: hashedPassword
+    ...(hashedPassword && { password: hashedPassword })
   });
   res.send({
     data: result,
@@ -44,52 +50,69 @@ router.post("/", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await usersCollection.findOne({ email });
 
-  if (!user) {
-    return res.status(404).send({ message: "User not found" });
-  }
-
-  const storedUserHash = user.password;
-  if (!password || !storedUserHash) {
-    return res.status(400).send({ message: "Password or hash missing!" });
-  }
-
-  const lockUntil = user.lockUntil || null;
-  let failedAttempts = user.failedAttempts || 0;
-
-  // Check if the account is locked
-  if (lockUntil && lockUntil > Date.now()) {
-    return res.status(403).send({
-      message: "Too many failed attempts. Try again later.",
-    });
-  }
-
-  const isMatch = await bcrypt.compare(password, storedUserHash);
-
-  if (!isMatch) {
-    failedAttempts += 1;
-    let updateData = { failedAttempts };
-
-    // Lock the account after 4 failed attempts
-    if (failedAttempts >= 4) {
-      updateData.lockUntil = Date.now() + 15 * 60 * 1000;
+  try {
+    const user = await usersCollection.findOne({ email });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
     }
 
-    await usersCollection.updateOne({ email }, { $set: updateData });
+    const storedUserHash = user.password;
+    if (!password || !storedUserHash) {
+      return res.status(400).send({ message: "Password or hash missing!" });
+    }
 
-    return res.status(401).send({
-      message: `Incorrect password. Attempts left: ${4 - failedAttempts}`,
+    const lockUntil = user.lockUntil || null;
+    let failedAttempts = user.failedAttempts || 0;
+
+    // Check if the account is locked
+    if (lockUntil && lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((lockUntil - Date.now()) / (60 * 1000));
+      return res.status(403).send({
+        message: `Too many failed attempts. Try again in ${minutesLeft} minutes.`,
+        lockUntil,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, storedUserHash);
+    if (!isMatch) {
+      failedAttempts += 1;
+      const updateData = { failedAttempts };
+
+      // Lock the account after 4 failed attempts
+      if (failedAttempts >= 4) {
+        updateData.lockUntil = Date.now() + 15 * 60 * 1000;
+      }
+
+      await usersCollection.updateOne({ email }, { $set: updateData });
+      return res.status(401).send({
+        message: `Incorrect password. Attempts left: ${4 - failedAttempts}`,
+        failedAttempts,
+      });
+    }
+
+    // Reset failed attempts on successful login
+    await usersCollection.updateOne(
+      { email },
+      { $set: { failedAttempts: 0, lockUntil: null } }
+    );
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(200).send({
+      message: "Login successful",
+      token,
+      user: { id: user._id, email: user.email, role: user.role },
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Server error during login" });
   }
-
-  // Reset failed attempts on successful login
-  await usersCollection.updateOne(
-    { email },
-    { $set: { failedAttempts: 0, lockUntil: null } }
-  );
-
-  res.send({ message: "Login successful" });
 });
 
 // Get user role --->
