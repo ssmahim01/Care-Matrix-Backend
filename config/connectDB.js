@@ -17,6 +17,7 @@ async function connectDB() {
 
     collections = {
       users: db.collection("users"),
+      roleUpgradeRequests: db.collection("roleUpgradeRequests"),
       banners: db.collection("banners"),
       beds: db.collection("beds"),
       appointments: db.collection("appointments"),
