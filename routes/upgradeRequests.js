@@ -25,6 +25,25 @@ router.post("/", async (req, res) => {
 
     const insertResult = await requestCollection.insertOne(requestData);
     res.status(201).send({ message: "Successfully sent the request", insertResult })
-})
+});
+
+router.get("/:userId", async (req, res) => {
+    const userId = req.params.userId;
+  
+    // Validate userId
+    if (!userId) {
+      return res.status(400).send({ message: "User ID is required" });
+    }
+  
+    const query = { userId };
+  
+    try {
+      const findResult = await requestCollection.find(query).toArray();
+      res.send({ data: findResult, count: findResult.length });
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      res.status(500).send({ message: "Error fetching requests", error });
+    }
+  });
 
 export default router;
