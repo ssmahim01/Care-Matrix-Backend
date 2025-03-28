@@ -27,12 +27,7 @@ router.post("/", async (req, res) => {
 
 router.get("/orders", async (req, res) => {
   try {
-    const result = await purchaseCollection
-      .find()
-      .sort({
-        date: -1,
-      })
-      .toArray();
+    const result = await purchaseCollection.find().sort({ date: -1 }).toArray();
     res.send(result);
   } catch (error) {
     res.status(500).send({ message: error.message });
