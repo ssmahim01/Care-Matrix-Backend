@@ -40,7 +40,7 @@ router.patch("/orders/change-status/:id", async (req, res) => {
     const { orderStatus } = req.body;
     const filter = { _id: new ObjectId(id) };
     const updatedOrderStatus = {
-      $set: orderStatus,
+      $set: { orderStatus: orderStatus },
     };
     const result = await purchaseCollection.updateOne(
       filter,
