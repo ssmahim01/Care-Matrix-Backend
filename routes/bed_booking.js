@@ -15,8 +15,8 @@ async function initCollection() {
 await initCollection();
 
 router.post("/", async(req, res) => {
-    const bed_bookingInfo = await req.body;
-    const result = await bed_bookingCollection.insertOne(bed_bookingInfo)
+    const bedBookingInfo = await req.body;
+    const result = await bed_bookingCollection.insertOne(bedBookingInfo)
     res.send(result)
 })
 

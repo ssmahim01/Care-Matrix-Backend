@@ -3,7 +3,9 @@
 import express from "express";
 import { connectDB } from "../config/connectDB.js";
 import { ObjectId } from "mongodb";
+import Stripe from 'stripe';
 const router = express.Router();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 
 let cartCollection
@@ -84,5 +86,33 @@ router.delete("/clear/:email", async (req, res) => {
     res.send(result)
 });
 
+router.post('/create-payment-intent', async (req, res) => {
+    try {
+        const { price } = req.body;
+        console.log('Request body:', req.body);
+
+        if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+            console.log('Validation failed:', { price });
+            return res.status(400).json({ error: 'Invalid price amount' });
+        }
+
+        const amount = Math.round(parseFloat(price) * 100);
+        console.log(`Creating payment intent: ৳${price} => ${amount} taka`);
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount,
+            currency: 'bdt',
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+
+        console.log('Payment intent created:', paymentIntent.id);
+        res.status(200).json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+        console.error('Payment Intent Error:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 export default router 

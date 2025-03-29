@@ -17,6 +17,7 @@ async function connectDB() {
 
     collections = {
       users: db.collection("users"),
+      roleUpgradeRequests: db.collection("roleUpgradeRequests"),
       banners: db.collection("banners"),
       beds: db.collection("beds"),
       appointments: db.collection("appointments"),
@@ -24,7 +25,8 @@ async function connectDB() {
       payments: db.collection("payments"),
       medicines: db.collection("medicines"),
       bed_booking: db.collection("bed_booking"),
-      carts: db.collection("carts")
+      carts: db.collection("carts"),
+      purchase: db.collection("purchase"),
     };
 
     return collections;
