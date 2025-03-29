@@ -1,5 +1,6 @@
 import express from "express";
 import { collections, connectDB } from "../config/connectDB.js";
+import { ObjectId } from "mongodb";
 const router = express.Router();
 
 let requestCollection;
@@ -44,6 +45,37 @@ router.get("/:userId", async (req, res) => {
       console.error("Error fetching requests:", error);
       res.status(500).send({ message: "Error fetching requests", error });
     }
+  });
+
+  router.delete("/:id", async(req, res) => {
+    const id = req.params.id;
+    
+    // Validate the Id
+    if (!id) {
+      return res.status(400).send({ message: "Request ID is required" });
+    }
+    
+    const query = {_id: new ObjectId(id)}
+    const result = await requestCollection.deleteOne(query);
+    res.status(200).send({message: "Request has been canceled", result});
+  });
+
+  router.patch("/status/:id", async(req, res) => {
+    const id = req.params.id;
+    
+    // Validate the Id
+    if (!id) {
+      return res.status(400).send({ message: "Request ID is required" });
+    }
+    
+    const query = {_id: new ObjectId(id)}
+    const updateStatus = {
+      $set: {
+        status: "Cancel"
+      }
+    }
+    const updateResult = await requestCollection.updateOne(query, updateStatus);
+    res.status(200).send({message: "Status has been updated", updateResult});
   });
 
 export default router;
