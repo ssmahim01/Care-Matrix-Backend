@@ -17,6 +17,18 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
+// Get all users request
+router.get("/doctors", async (req, res) => {
+  try {
+    const findAll = await requestCollection.find({requestedRole: "Doctor"});
+    const result = await findAll.toArray();
+    res.status(200).send(result);
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).send({ message: "Error fetching requests", error });
+  }
+});
+
 // Insert the request data
 router.post("/", async (req, res) => {
   const requestData = req.body;
@@ -30,7 +42,7 @@ router.post("/", async (req, res) => {
 
 router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const {search} = req.query;
+  const { search } = req.query;
 
   // Validate userId
   if (!userId) {
@@ -38,17 +50,17 @@ router.get("/:userId", async (req, res) => {
   }
 
   // Start with userId filter
-  let query = {userId: userId};
+  let query = { userId: userId };
 
   // Add search filter if provided
-  if(search){
-   query = {
-    ...query,
-    $or: [
-      {requestedRole: {$regex: search, $options: "i"}},
-      {shift: {$regex: search, $options: "i"}},
-    ]
-   }
+  if (search) {
+    query = {
+      ...query,
+      $or: [
+        { requestedRole: { $regex: search, $options: "i" } },
+        { shift: { $regex: search, $options: "i" } },
+      ]
+    }
   }
 
   try {
