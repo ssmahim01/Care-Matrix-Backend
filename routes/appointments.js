@@ -36,22 +36,29 @@ router.get("/:email", async (req, res) => {
 router.delete("/:id", async(req, res)=>{
  const id = req.params.id;
  const query = {_id: new ObjectId(id)}
- const result = await collections.appointments.deleteOne(query)
+ const result = await appointmentsCollection.deleteOne(query)
  res.send(result)
 })
 
 router.patch("/:id", async(req, res) => {
   const id = req.params.id;
   const filter = {_id: new ObjectId(id)}
+  const appointment = await appointmentsCollection.findOne(filter)
+
+  const newStatus = appointment.status === "pending" ? "Approved" : "pending"
   const updatedStatus = {
     $set:{
-      status: "Approved"
+      status: newStatus
     }
   }
 
   const result = await appointmentsCollection.updateOne(filter, updatedStatus);
 
-  res.send(result)
+  if(newStatus === "Approved"){
+    res.send({result, message: "approved"})
+  }else{
+    res.send({result, message: "pending"})
+  }
 
 })
 
