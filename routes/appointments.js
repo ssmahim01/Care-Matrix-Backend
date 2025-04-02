@@ -40,6 +40,21 @@ router.delete("/:id", async(req, res)=>{
  res.send(result)
 })
 
+router.patch("/:id", async(req, res) => {
+  const id = req.params.id;
+  const filter = {_id: new ObjectId(id)}
+  const updatedStatus = {
+    $set:{
+      status: "Approved"
+    }
+  }
+
+  const result = await appointmentsCollection.updateOne(filter, updatedStatus);
+
+  res.send(result)
+
+})
+
 
 // Get appointments for patients
 router.get('/patients/:email', async(req, res)=>{
