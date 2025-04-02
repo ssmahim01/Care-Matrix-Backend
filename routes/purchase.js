@@ -55,4 +55,63 @@ router.patch("/orders/change-status/:id", async (req, res) => {
   }
 });
 
+router.get("/invoice/:invoiceId", async (req, res) => {
+  try {
+    const result = await purchaseCollection
+      .aggregate([
+        {
+          // Match the document by transactionId
+          $match: {
+            transactionId: req.params.invoiceId,
+          },
+        },
+        {
+          // Unwind the medicines array to process each item
+          $unwind: "$medicines",
+        },
+        {
+          // Group the data back together with formatted invoice details
+          $group: {
+            _id: "$_id",
+            transactionId: { $first: "$transactionId" },
+            customerInfo: { $first: "$customerInfo" },
+            totalPrice: { $first: "$totalPrice" },
+            paymentStatus: { $first: "$paymentStatus" },
+            orderStatus: { $first: "$orderStatus" },
+            date: { $first: "$date" },
+            ordered_items: {
+              $push: {
+                itemId: "$medicines.medicineId",
+                name: "$medicines.medicineName",
+                quantity: "$medicines.quantity",
+                unitPrice: "$medicines.price",
+                totalPrice: "$medicines.subtotal",
+              },
+            },
+          },
+        },
+        {
+          // Project to shape the final output
+          $project: {
+            _id: 1,
+            transactionId: 1,
+            customerInfo: 1,
+            totalPrice: 1,
+            paymentStatus: 1,
+            orderStatus: 1,
+            date: 1,
+            orderedItems: "$ordered_items",
+          },
+        },
+      ])
+      .toArray();
+
+    // Return the first result or an empty object if no match found
+    res.send(result[0] || {});
+  } catch (error) {
+    console.error("Error generating invoice:", error);
+    res.status(500).send({ error: "Failed to generate invoice" });
+  }
+});
+
 export default router;
