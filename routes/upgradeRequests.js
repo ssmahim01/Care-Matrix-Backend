@@ -22,7 +22,7 @@ router.get("/doctors", async (req, res) => {
   try {
     const findAll = await requestCollection.find({requestedRole: "Doctor"});
     const result = await findAll.toArray();
-    res.status(200).send(result);
+    res.send(result);
   } catch (error) {
     console.error("Error fetching requests:", error);
     res.status(500).send({ message: "Error fetching requests", error });

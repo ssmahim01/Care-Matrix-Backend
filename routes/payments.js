@@ -84,6 +84,24 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Get Payments Data
+router.get('/', async (req, res) => {
+    try {
+        if (!paymentsCollection) {
+            return res.status(500).json({ error: 'Database not connected' });
+        }
 
+        const payments = await paymentsCollection.find({}).toArray();
+
+        if (payments.length === 0) {
+            return res.status(404).json({ message: 'No payment records found' });
+        }
+
+        res.status(200).json({ payments });
+    } catch (error) {
+        console.error('Error fetching payments:', error.message);
+        res.status(500).json({ error: 'Failed to fetch payments' });
+    }
+});
 
 export default router;
