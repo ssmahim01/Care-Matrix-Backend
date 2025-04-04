@@ -17,6 +17,18 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
+// Get all users request
+router.get("/doctors", async (req, res) => {
+  try {
+    const findAll = await requestCollection.find({requestedRole: "Doctor"});
+    const result = await findAll.toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).send({ message: "Error fetching requests", error });
+  }
+});
+
 // Insert the request data
 router.post("/", async (req, res) => {
   const requestData = req.body;
@@ -28,9 +40,10 @@ router.post("/", async (req, res) => {
   res.status(201).send({ message: "Successfully sent the request", insertResult })
 });
 
+// Get requests from users collection
 router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const {search} = req.query;
+  const { search } = req.query;
 
   // Validate userId
   if (!userId) {
@@ -38,17 +51,17 @@ router.get("/:userId", async (req, res) => {
   }
 
   // Start with userId filter
-  let query = {userId: userId};
+  let query = { userId: userId };
 
   // Add search filter if provided
-  if(search){
-   query = {
-    ...query,
-    $or: [
-      {requestedRole: {$regex: search, $options: "i"}},
-      {shift: {$regex: search, $options: "i"}},
-    ]
-   }
+  if (search) {
+    query = {
+      ...query,
+      $or: [
+        { requestedRole: { $regex: search, $options: "i" } },
+        { shift: { $regex: search, $options: "i" } },
+      ]
+    }
   }
 
   try {
@@ -60,6 +73,7 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
+// Delete Request
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -73,6 +87,21 @@ router.delete("/:id", async (req, res) => {
   res.status(200).send({ message: "Request has been canceled", result });
 });
 
+// Delete Doctor
+router.delete("/delete-doctor/:id", async (req, res) => {
+  const id = req.params.id;
+
+  // Validate the Id
+  if (!id) {
+    return res.status(400).send({ message: "ID is required" });
+  }
+
+  const query = { _id: new ObjectId(id) }
+  const result = await requestCollection.deleteOne(query);
+  res.status(200).send({ message: "Doctor has been deleted", result });
+});
+
+// Update status
 router.patch("/status/:id", async (req, res) => {
   const id = req.params.id;
 
