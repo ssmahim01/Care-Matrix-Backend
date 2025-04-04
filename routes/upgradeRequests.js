@@ -40,6 +40,7 @@ router.post("/", async (req, res) => {
   res.status(201).send({ message: "Successfully sent the request", insertResult })
 });
 
+// Get requests from users collection
 router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
   const { search } = req.query;
@@ -72,6 +73,7 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
+// Delete Request
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -85,6 +87,21 @@ router.delete("/:id", async (req, res) => {
   res.status(200).send({ message: "Request has been canceled", result });
 });
 
+// Delete Doctor
+router.delete("/delete-doctor/:id", async (req, res) => {
+  const id = req.params.id;
+
+  // Validate the Id
+  if (!id) {
+    return res.status(400).send({ message: "ID is required" });
+  }
+
+  const query = { _id: new ObjectId(id) }
+  const result = await requestCollection.deleteOne(query);
+  res.status(200).send({ message: "Doctor has been deleted", result });
+});
+
+// Update status
 router.patch("/status/:id", async (req, res) => {
   const id = req.params.id;
 
