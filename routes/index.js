@@ -12,6 +12,7 @@ import purchase from './purchase.js'
 import upgradeRequests from './upgradeRequests.js'
 import doctorRoutes from "./doctors.js";
 import pharmacistRoutes from "./pharmacist.js";
+import favorite_doctors from './favorite-doctors.js'
 
 const router = express.Router();
 
@@ -33,5 +34,6 @@ router.use("/pharmacist", pharmacistRoutes); // pharmacist Api routes
 router.use("/carts", carts); // carts Api routes
 router.use("/purchase", purchase); // purchase Api routes
 router.use("/user-requests", upgradeRequests); // Request API routes
+router.use("/favorite-doctors", favorite_doctors); // Request API routes
 
 export default router;
