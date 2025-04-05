@@ -120,4 +120,29 @@ router.patch("/status/:id", async (req, res) => {
   res.status(200).send({ message: "Status has been updated", updateResult });
 });
 
+// Update Note
+router.patch("/update-note/:id", async (req, res) => {
+  const id = req.params.id;
+  const {noteOfAdministrator} = req.body;
+
+  // Validate the Id
+  if (!id) {
+    return res.status(400).send({ message: "Note ID is required" });
+  }
+
+  // Validate the note
+  if(!noteOfAdministrator || typeof noteOfAdministrator !== "string"){
+    return res.status(400).send({message: "Note content is required"})
+  }
+
+  const query = { _id: new ObjectId(id) }
+  const updateNote = {
+    $set: {
+      adminNotes: noteOfAdministrator
+    }
+  }
+  const result = await requestCollection.updateOne(query, updateNote);
+  res.status(200).send({ message: "Note has been updated", result });
+});
+
 export default router;
