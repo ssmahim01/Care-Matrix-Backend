@@ -153,7 +153,7 @@ router.patch("/last-login-at/:email", async (req, res) => {
   res.send({ data: result, message: "lastLoginAt Time updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
 
-// Update user profile --->
+// Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
   const email = req.params.email;
   const { name } = req.body;
@@ -165,7 +165,21 @@ router.patch("/update-name/:email", async (req, res) => {
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
   res.send({ data: result, message: "Username updated successfully" });
-}); // Api endpoint -> /users/update-profile/:email
+}); // Api endpoint -> /users/update-name/:email
+
+// Update user photo --->
+router.patch("/update-photo/:email", async (req, res) => {
+  const email = req.params.email;
+  const { photo } = req.body;
+  const filter = { email };
+  const updatedUserInfo = {
+    $set: {
+      photoURL: photo,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUserInfo);
+  res.send({ data: result, message: "User Photo updated successfully" });
+}); // Api endpoint -> /users/update-photo/:email
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
