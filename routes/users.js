@@ -177,23 +177,50 @@ router.get("/", async (req, res) => {
   );
 }); // Api endpoint -> /users
 
+router.get("/search-users", async (req, res) => {
+  const search = req.query.name;
+  if (!search) {
+    return res.status(400).send({ message: "Missing 'name' query parameter." });
+  }
+  
+  try {
+    const result = await usersCollection
+      .find({
+        name: { $regex: search, $options: "i" },
+      })
+      .project({
+        _id: 1,
+        name: 1,
+        email: 1,
+        role: 1,
+        photo: 1,
+        phoneNumber: 1,
+        createdAt: 1,
+        lastLoginAt: 1,
+      })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).send({ message: "Failed to search users.", error });
+  }
+});
+
+
 // Delete user from db & firebase --->
 router.delete("/delete-user/:id", async (req, res) => {
   const id = req.params.id;
   const query = { _id: new ObjectId(id) };
-
   try {
     const user = await usersCollection.findOne(query);
     if (!user) {
       return res.status(404).send({ message: `User not found.` });
     }
-
     const result = await usersCollection.deleteOne(query);
-
     if (result.deletedCount === 0) {
       return res.status(500).send({ message: "Failed to delete user." });
     }
-
     res.send({
       message: `User: '${user.email}' deleted successfully!`,
     });
