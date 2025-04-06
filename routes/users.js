@@ -178,11 +178,32 @@ router.get("/", async (req, res) => {
 }); // Api endpoint -> /users
 
 // Delete user from db & firebase --->
-router.delete("/delete-user/:email", async (req, res) => {
-  const email = req.params.email;
-  res.send({
-    message: `User: '${email}' Deleted Successfully!`,
-  });
+router.delete("/delete-user/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+
+  try {
+    const user = await usersCollection.findOne(query);
+    if (!user) {
+      return res.status(404).send({ message: `User not found.` });
+    }
+
+    const result = await usersCollection.deleteOne(query);
+
+    if (result.deletedCount === 0) {
+      return res.status(500).send({ message: "Failed to delete user." });
+    }
+
+    res.send({
+      message: `User: '${user.email}' deleted successfully!`,
+    });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).send({
+      error: "Failed to delete user.",
+      details: err.message,
+    });
+  }
 }); // Api endpoint -> /users/delete-user/:email
 
 export default router;
