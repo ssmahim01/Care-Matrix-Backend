@@ -122,6 +122,13 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Get user phoneNumber --->
+router.get("/phone/:uid", async (req, res) => {
+  const uid = req.params.uid;
+  const result = await usersCollection.findOne({ uid });
+  res.send({ phoneNumber: result?.phoneNumber });
+}); // Api endpoint -> /users/phone/:uid
+
 // Retrieve lockUntil and failedAttempts data from DB
 router.get("/lock-profile/:email", async (req, res) => {
   const email = req.params.email;
