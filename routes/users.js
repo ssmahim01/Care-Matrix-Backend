@@ -24,7 +24,7 @@ await initCollection();
 router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
- 
+
   // If new user, handle password for non-social sign-ins
   let hashedPassword = null;
   if (password) {
@@ -146,12 +146,14 @@ router.patch("/last-login-at/:email", async (req, res) => {
 // Update user profile --->
 router.put("/update-profile/:email", async (req, res) => {
   const email = req.params.email;
-  const userInfo = req.body;
+  const { data, profileImage } = req.body;
   const filter = { email };
   const updatedUserInfo = {
     $set: {
-      name: userInfo?.name,
-      photo: userInfo?.photo,
+      name: data?.name,
+      photo: profileImage,
+      role: data?.role,
+      phoneNumber: data?.phoneNumber,
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
