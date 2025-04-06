@@ -178,11 +178,15 @@ router.get("/", async (req, res) => {
 }); // Api endpoint -> /users
 
 router.get("/search-users", async (req, res) => {
-  const search = req.query.name;
+  const search = req.query.name?.trim();
   if (!search) {
     return res.status(400).send({ message: "Missing 'name' query parameter." });
   }
-  
+  if (!search) {
+    // Return all users if no search term is provided
+    const allUsers = await usersCollection.find().toArray();
+    return res.send(allUsers);
+  }
   try {
     const result = await usersCollection
       .find({
