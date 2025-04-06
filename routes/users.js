@@ -10,7 +10,7 @@ import jwt from "jsonwebtoken";
 // Hashing password
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, saltRounds);
-}
+};
 
 // Initialize usersCollection
 let usersCollection;
@@ -24,7 +24,7 @@ await initCollection();
 router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
- 
+
   // If new user, handle password for non-social sign-ins
   let hashedPassword = null;
   if (password) {
@@ -40,7 +40,7 @@ router.post("/", async (req, res) => {
   const result = await usersCollection.insertOne({
     role: "patient",
     ...user,
-    ...(hashedPassword && { password: hashedPassword })
+    ...(hashedPassword && { password: hashedPassword }),
   });
   res.send({
     data: result,
@@ -133,7 +133,10 @@ router.get("/phone/:uid", async (req, res) => {
 router.get("/lock-profile/:email", async (req, res) => {
   const email = req.params.email;
   const result = await usersCollection.findOne({ email });
-  res.send({ lockUntil: result?.lockUntil, failedAttempts: result?.failedAttempts });
+  res.send({
+    lockUntil: result?.lockUntil,
+    failedAttempts: result?.failedAttempts,
+  });
 }); // Api endpoint -> /users/lock-profile/:email
 
 // Update user lastLoginAt --->
@@ -151,18 +154,17 @@ router.patch("/last-login-at/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-profile/:email
 
 // Update user profile --->
-router.put("/update-profile/:email", async (req, res) => {
+router.patch("/update-name/:email", async (req, res) => {
   const email = req.params.email;
-  const userInfo = req.body;
+  const { name } = req.body;
   const filter = { email };
   const updatedUserInfo = {
     $set: {
-      name: userInfo?.name,
-      photo: userInfo?.photo,
+      name: name,
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
-  res.send({ data: result, message: "User profile updated successfully" });
+  res.send({ data: result, message: "Username updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
 
 // ADMIN ONLY -> Get all users --->
