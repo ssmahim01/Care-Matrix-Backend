@@ -10,7 +10,7 @@ async function initCollection() {
     const collections = await connectDB();
     purchaseCollection = collections.purchase;
   } catch (error) {
-    console.error("Failed to initialize medicines collection:", error);
+    console.error("Failed to initialize purchase collection:", error);
   }
 }
 await initCollection();
