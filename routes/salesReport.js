@@ -43,18 +43,21 @@ router.get("/", async (req, res) => {
             date: { $toDate: "$date" },
           },
         },
+        { $unwind: "$medicines" },
         {
           $group: {
             _id: {
               $dateToString: { format: "%Y-%m-%d", date: "$date" },
             },
-            total: { $sum: { $toDouble: "$totalPrice" } },
+            totalQty: { $sum: "$medicines.quantity" },
+            totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
           },
         },
         {
           $project: {
             date: "$_id",
-            total: 1,
+            totalRevenue: 1,
+            totalQty: 1,
             _id: 0,
           },
         },
