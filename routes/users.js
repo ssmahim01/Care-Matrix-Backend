@@ -177,6 +177,7 @@ router.get("/", async (req, res) => {
   );
 }); // Api endpoint -> /users
 
+// get users by search params by their name
 router.get("/search-users", async (req, res) => {
   const search = req.query.name?.trim();
   if (!search) {
@@ -209,7 +210,7 @@ router.get("/search-users", async (req, res) => {
     console.error("Search error:", error);
     res.status(500).send({ message: "Failed to search users.", error });
   }
-});
+}); // Api endpoint -> /users/search-users?name={value}
 
 
 // Delete user from db & firebase --->
