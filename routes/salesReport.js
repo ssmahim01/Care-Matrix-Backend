@@ -53,6 +53,7 @@ router.get("/", async (req, res) => {
             totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
           },
         },
+        { $sort: { _id: 1 } },
         {
           $project: {
             date: "$_id",
@@ -61,7 +62,6 @@ router.get("/", async (req, res) => {
             _id: 0,
           },
         },
-        { $sort: { _id: 1 } },
       ])
       .toArray();
 
