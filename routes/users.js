@@ -181,6 +181,19 @@ router.patch("/update-photo/:email", async (req, res) => {
   res.send({ data: result, message: "User Photo updated successfully" });
 }); // Api endpoint -> /users/update-photo/:email
 
+// Update the role
+router.patch("/convert-role/:email", async(req, res) => {
+  const email = req.params.email;
+  const query = {email: email};
+
+  const updateRole = {
+    $set: {role: "Doctor"}
+  }
+
+  const updateResult = await usersCollection.updateOne(query, updateRole);
+  res.status(200).send({message: "Updated the role", updateResult});
+}); // API endpoint -> /users/convert-role
+
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
   const result = await usersCollection.find().toArray();
