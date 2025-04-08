@@ -41,15 +41,21 @@ router.get("/", async (req, res) => {
         {
           $addFields: {
             date: { $toDate: "$date" },
+            totalQty: {
+              $sum: {
+                $map: {
+                  input: "$medicines",
+                  as: "m",
+                  in: "$$m.quantity",
+                },
+              },
+            },
           },
         },
-        { $unwind: "$medicines" },
         {
           $group: {
-            _id: {
-              $dateToString: { format: "%Y-%m-%d", date: "$date" },
-            },
-            totalQty: { $sum: "$medicines.quantity" },
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+            totalQty: { $sum: "$totalQty" },
             totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
           },
         },
@@ -82,7 +88,7 @@ router.get("/", async (req, res) => {
           },
         },
         { $sort: { totalQty: -1 } },
-        { $limit: 5 },
+        // { $limit: 5 },
       ])
       .toArray();
 
