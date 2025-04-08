@@ -115,10 +115,12 @@ router.get("/stats", async (req, res) => {
     const nearExpiryDate = new Date();
     nearExpiryDate.setMonth(nearExpiryDate.getMonth() + 1);
 
+    // expiredCount
     const expiredCount = await medicinesCollection.countDocuments({
       expiryDate: { $lt: currentDate },
     });
-
+    
+    // nearExpiryCount
     const nearExpiryCount = await medicinesCollection.countDocuments({
       expiryDate: { $gte: currentDate, $lte: nearExpiryDate },
     });
