@@ -2,16 +2,18 @@ import express from "express";
 import authRoutes from "./auth.js";
 import userRoutes from "./users.js";
 import appointmentRoutes from "./appointments.js";
-import banners from './banners.js';
-import paymentsRoutes from './payments.js'
-import bedsRoutes from './beds.js'
-import bed_bookingRoutes from './bed_booking.js'
-import pharmacyRoutes from './pharmacy.js'
-import carts from './carts.js'
-import purchase from './purchase.js'
-import upgradeRequests from './upgradeRequests.js'
+import banners from "./banners.js";
+import paymentsRoutes from "./payments.js";
+import bedsRoutes from "./beds.js";
+import bed_bookingRoutes from "./bed_booking.js";
+import pharmacyRoutes from "./pharmacy.js";
+import carts from "./carts.js";
+import purchase from "./purchase.js";
+import upgradeRequests from "./upgradeRequests.js";
 import doctorRoutes from "./doctors.js";
 import pharmacistRoutes from "./pharmacist.js";
+import salesReportRoutes from "./salesReport.js";
+import favorite_doctors from './favorite-doctors.js'
 
 const router = express.Router();
 
@@ -33,5 +35,7 @@ router.use("/pharmacist", pharmacistRoutes); // pharmacist Api routes
 router.use("/carts", carts); // carts Api routes
 router.use("/purchase", purchase); // purchase Api routes
 router.use("/user-requests", upgradeRequests); // Request API routes
+router.use("/sales-report", salesReportRoutes); // SalesReport API routes
+router.use("/favorite-doctors", favorite_doctors); // Request API routes
 
 export default router;

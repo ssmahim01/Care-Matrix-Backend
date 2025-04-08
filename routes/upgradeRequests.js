@@ -19,8 +19,22 @@ mongoDBCollection();
 
 // Get all users request
 router.get("/doctors", async (req, res) => {
+  const { search = "", sort = "" } = req.query;
+
+  const filter = {
+    requestedRole: "Doctor",
+  };
+
+  if (search) {
+    filter.userEmail = { $regex: search, $options: "i" };
+  }
+
+  if (sort) {
+    filter.department = sort;
+  }
+
   try {
-    const findAll = await requestCollection.find({requestedRole: "Doctor"});
+    const findAll = await requestCollection.find(filter);
     const result = await findAll.toArray();
     res.send(result);
   } catch (error) {
@@ -123,7 +137,7 @@ router.patch("/status/:id", async (req, res) => {
 // Update Note
 router.patch("/update-note/:id", async (req, res) => {
   const id = req.params.id;
-  const {noteOfAdministrator} = req.body;
+  const { noteOfAdministrator } = req.body;
 
   // Validate the Id
   if (!id) {
@@ -131,8 +145,8 @@ router.patch("/update-note/:id", async (req, res) => {
   }
 
   // Validate the note
-  if(!noteOfAdministrator || typeof noteOfAdministrator !== "string"){
-    return res.status(400).send({message: "Note content is required"})
+  if (!noteOfAdministrator || typeof noteOfAdministrator !== "string") {
+    return res.status(400).send({ message: "Note content is required" })
   }
 
   const query = { _id: new ObjectId(id) }
@@ -143,6 +157,40 @@ router.patch("/update-note/:id", async (req, res) => {
   }
   const result = await requestCollection.updateOne(query, updateNote);
   res.status(200).send({ message: "Note has been updated", result });
+});
+
+// Reject Status
+router.patch("/reject-status/:id", async (req, res) => {
+  const id = req.params.id;
+
+  // Validate the Id
+  if (!id) {
+    return res.status(400).send({ message: "User ID is required" });
+  }
+
+  const query = { _id: new ObjectId(id) }
+  const updateStatus = {
+    $set: { status: "Reject" }
+  }
+  const result = await requestCollection.updateOne(query, updateStatus);
+  res.status(200).send({ message: "Rejected the user", result });
+});
+
+// Assign user
+router.patch("/assign-status/:id", async (req, res) => {
+  const id = req.params.id;
+
+  // Validate the Id
+  if (!id) {
+    return res.status(400).send({ message: "User ID is required" });
+  }
+
+  const query = { _id: new ObjectId(id) }
+  const assignStatus = {
+    $set: { status: "Assign" }
+  }
+  const result = await requestCollection.updateOne(query, assignStatus);
+  res.status(200).send({ message: "Assigned the user", result });
 });
 
 export default router;
