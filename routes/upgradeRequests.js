@@ -19,8 +19,22 @@ mongoDBCollection();
 
 // Get all users request
 router.get("/doctors", async (req, res) => {
+  const { search = "", sort = "" } = req.query;
+
+  const filter = {
+    requestedRole: "Doctor",
+  };
+
+  if (search) {
+    filter.userEmail = { $regex: search, $options: "i" };
+  }
+
+  if (sort) {
+    filter.department = sort;
+  }
+
   try {
-    const findAll = await requestCollection.find({ requestedRole: "Doctor" });
+    const findAll = await requestCollection.find(filter);
     const result = await findAll.toArray();
     res.send(result);
   } catch (error) {
