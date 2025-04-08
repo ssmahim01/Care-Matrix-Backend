@@ -39,81 +39,115 @@ async function initBannersCollection() {
 await initBannersCollection();
 
 router.get("/stats", async (req, res) => {
-  const totalBanners = await bannersCollection.estimatedDocumentCount();
+  try {
+    // Banner Stats
+    const totalBanners = await bannersCollection.estimatedDocumentCount();
+    const totalActive = await bannersCollection.countDocuments({
+      status: "active",
+    });
+    const totalInActive = await bannersCollection.countDocuments({
+      status: "inactive",
+    });
 
-  const totalActive = await bannersCollection.countDocuments({
-    status: "active",
-  });
+    // Medicine Stats
+    const totalMedicines = await medicinesCollection.estimatedDocumentCount();
+    const totalInStockMedicines = await medicinesCollection.countDocuments({
+      availabilityStatus: "In Stock",
+    });
+    const totalLimitedStockMedicines = await medicinesCollection.countDocuments(
+      { availabilityStatus: "Limited Stock" }
+    );
+    const totalOutOFStockMedicines = await medicinesCollection.countDocuments({
+      availabilityStatus: "Out Of Stock",
+    });
 
-  const totalInActive = await bannersCollection.countDocuments({
-    status: "inactive",
-  });
+    // Category Breakdown
+    const medicinesPerCategory = await medicinesCollection
+      .aggregate([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $project: { _id: 0, category: "$_id", count: 1 } },
+        { $sort: { count: -1 } },
+      ])
+      .toArray();
 
-  const totalMedicines = await medicinesCollection.estimatedDocumentCount();
+    // Manufacturer Breakdown
+    const medicinesPerManufacturer = await medicinesCollection
+      .aggregate([
+        { $group: { _id: "$manufacturer.name", count: { $sum: 1 } } },
+        { $project: { _id: 0, manufacturer: "$_id", count: 1 } },
+        { $sort: { count: -1 } },
+      ])
+      .toArray();
 
-  const totalInStockMedicines = await medicinesCollection.countDocuments({
-    availabilityStatus: "In Stock",
-  });
+    // Supplier Breakdown
+    const medicinesPerSupplier = await medicinesCollection
+      .aggregate([
+        { $group: { _id: "$supplier.name", count: { $sum: 1 } } },
+        { $project: { _id: 0, supplier: "$_id", count: 1 } },
+        { $sort: { count: -1 } },
+      ])
+      .toArray();
 
-  const totalLimitedStockMedicines = await medicinesCollection.countDocuments({
-    availabilityStatus: "Limited Stock",
-  });
-  
-  const totalOutOFStockMedicines = await medicinesCollection.countDocuments({
-    availabilityStatus: "Out Of Stock",
-  });
+    // Storage Condition Breakdown
+    const storageConditionStats = await medicinesCollection
+      .aggregate([
+        { $group: { _id: "$storageConditions", count: { $sum: 1 } } },
+        { $project: { _id: 0, condition: "$_id", count: 1 } },
+      ])
+      .toArray();
 
-  const medicinesPerCategory = await medicinesCollection
-    .aggregate([
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-      {
-        $project: {
-          _id: 0,
-          category: "$_id",
-          count: 1,
+    // Prescription Required vs Not
+    const prescriptionStats = await medicinesCollection
+      .aggregate([
+        { $group: { _id: "$prescriptionRequired", count: { $sum: 1 } } },
+        {
+          $project: {
+            _id: 0,
+            prescriptionRequired: "$_id",
+            count: 1,
+          },
         },
-      },
-    ])
-    .toArray();
+      ])
+      .toArray();
 
-  const medicinesPerManufacturer = await medicinesCollection
-    .aggregate([
-      { $group: { _id: "$manufacturer.name", count: { $sum: 1 } } },
-      {
-        $project: {
-          _id: 0,
-          manufacturer: "$_id",
-          count: 1,
-        },
-      },
-    ])
-    .toArray();
+    // Expiry Summary
+    const currentDate = new Date();
+    const nearExpiryDate = new Date();
+    nearExpiryDate.setMonth(nearExpiryDate.getMonth() + 1);
 
-  const medicinesPerSupplier = await medicinesCollection
-    .aggregate([
-      { $group: { _id: "$supplier.name", count: { $sum: 1 } } },
-      {
-        $project: {
-          _id: 0,
-          supplier: "$_id",
-          count: 1,
-        },
-      },
-    ])
-    .toArray();
+    // expiredCount
+    const expiredCount = await medicinesCollection.countDocuments({
+      expiryDate: { $lt: currentDate },
+    });
+    
+    // nearExpiryCount
+    const nearExpiryCount = await medicinesCollection.countDocuments({
+      expiryDate: { $gte: currentDate, $lte: nearExpiryDate },
+    });
 
-  res.send({
-    totalBanners,
-    totalActive,
-    totalInActive,
-    totalMedicines,
-    totalInStockMedicines,
-    totalLimitedStockMedicines,
-    totalOutOFStockMedicines,
-    medicinesPerCategory,
-    medicinesPerManufacturer,
-    medicinesPerSupplier,
-  });
+    res.send({
+      // banner stats
+      totalBanners,
+      totalActive,
+      totalInActive,
+      // medicines starts
+      totalMedicines,
+      totalInStockMedicines,
+      totalLimitedStockMedicines,
+      totalOutOFStockMedicines,
+      expiredCount,
+      nearExpiryCount,
+      // charts data
+      medicinesPerCategory,
+      medicinesPerManufacturer,
+      medicinesPerSupplier,
+      storageConditionStats,
+      prescriptionStats,
+    });
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    res.status(500).send({ message: "Failed to fetch stats" });
+  }
 });
 
 export default router;
