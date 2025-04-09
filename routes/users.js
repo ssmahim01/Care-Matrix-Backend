@@ -25,6 +25,7 @@ router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
 
+
   // If new user, handle password for non-social sign-ins
   let hashedPassword = null;
   if (password) {
@@ -190,11 +191,14 @@ router.patch("/update-name/:email", async (req, res) => {
 // Update user photo --->
 router.patch("/update-photo/:email", async (req, res) => {
   const email = req.params.email;
-  const { photo } = req.body;
+  const { data, profileImage } = req.body;
   const filter = { email };
   const updatedUserInfo = {
     $set: {
-      photoURL: photo,
+      name: data?.name,
+      photo: profileImage,
+      role: data?.role,
+      phoneNumber: data?.phoneNumber,
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
@@ -214,6 +218,27 @@ router.patch("/convert-role/:email", async(req, res) => {
   res.status(200).send({message: "Updated the role", updateResult});
 }); // API endpoint -> /users/convert-role
 
+router.patch("/update-password/:uid", async (req, res) => {
+  const { uid } = req.params;
+  const { newPassword } = req.body;
+  
+  if (!newPassword) {
+    return res.status(400).send({ message: "New password is required" });
+  }
+  
+  const bcryptPassword = await hashPassword(newPassword);
+  const result = await usersCollection.updateOne(
+      { uid },
+      { $set: { password: bcryptPassword } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    res.status(200).send({ message: "Password updated in database", success: true });
+}); // API endpoint -> /users/update-password/:uid
+
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
   const result = await usersCollection.find().toArray();
@@ -231,12 +256,65 @@ router.get("/", async (req, res) => {
   );
 }); // Api endpoint -> /users
 
+// get users by search params by their name
+router.get("/search-users", async (req, res) => {
+  const search = req.query.name?.trim();
+  if (!search) {
+    return res.status(400).send({ message: "Missing 'name' query parameter." });
+  }
+  if (!search) {
+    // Return all users if no search term is provided
+    const allUsers = await usersCollection.find().toArray();
+    return res.send(allUsers);
+  }
+  try {
+    const result = await usersCollection
+      .find({
+        name: { $regex: search, $options: "i" },
+      })
+      .project({
+        _id: 1,
+        name: 1,
+        email: 1,
+        role: 1,
+        photo: 1,
+        phoneNumber: 1,
+        createdAt: 1,
+        lastLoginAt: 1,
+      })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).send({ message: "Failed to search users.", error });
+  }
+}); // Api endpoint -> /users/search-users?name={value}
+
+
 // Delete user from db & firebase --->
-router.delete("/delete-user/:email", async (req, res) => {
-  const email = req.params.email;
-  res.send({
-    message: `User: '${email}' Deleted Successfully!`,
-  });
+router.delete("/delete-user/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  try {
+    const user = await usersCollection.findOne(query);
+    if (!user) {
+      return res.status(404).send({ message: `User not found.` });
+    }
+    const result = await usersCollection.deleteOne(query);
+    if (result.deletedCount === 0) {
+      return res.status(500).send({ message: "Failed to delete user." });
+    }
+    res.send({
+      message: `User: '${user.email}' deleted successfully!`,
+    });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).send({
+      error: "Failed to delete user.",
+      details: err.message,
+    });
+  }
 }); // Api endpoint -> /users/delete-user/:email
 
 export default router;
