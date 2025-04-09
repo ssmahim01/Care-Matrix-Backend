@@ -27,13 +27,16 @@ router.post("/", async (req, res) => {
 
 router.get("/orders", async (req, res) => {
   try {
-    const email = req.query.email
-    const query = {}
+    const email = req.query.email;
+    const query = {};
     if (email) {
-      query["customerInfo.email"] = email
+      query["customerInfo.email"] = email;
     }
 
-    const result = await purchaseCollection.find(query).sort({ date: -1 }).toArray();
+    const result = await purchaseCollection
+      .find(query)
+      .sort({ date: -1 })
+      .toArray();
     res.send(result);
   } catch (error) {
     res.status(500).send({ message: error.message });
@@ -84,6 +87,8 @@ router.get("/invoice/:invoiceId", async (req, res) => {
             totalPrice: { $first: "$totalPrice" },
             paymentStatus: { $first: "$paymentStatus" },
             orderStatus: { $first: "$orderStatus" },
+            discountPercentage: { $first: "$discountPercentage" },
+            discountAmount: { $first: "$discountAmount" },
             date: { $first: "$date" },
             ordered_items: {
               $push: {
@@ -104,6 +109,8 @@ router.get("/invoice/:invoiceId", async (req, res) => {
             customerInfo: 1,
             totalPrice: 1,
             paymentStatus: 1,
+            discountAmount: 1,
+            discountPercentage: 1,
             orderStatus: 1,
             date: 1,
             orderedItems: "$ordered_items",
