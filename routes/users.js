@@ -123,6 +123,13 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Get single user
+router.get("/individual/:uid", async (req, res) => {
+  const id = req.params.uid;
+  const result = await usersCollection.findOne({ uid: id });
+  res.send(result);
+}); // Api endpoint -> /users/individual/:uid
+
 // Get user phoneNumber --->
 router.get("/phone/:uid", async (req, res) => {
   const uid = req.params.uid;
@@ -153,6 +160,19 @@ router.patch("/last-login-at/:email", async (req, res) => {
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
   res.send({ data: result, message: "lastLoginAt Time updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
+
+// Verify Password
+router.post("/verify-password", async (req, res) => {
+  const { uid, password } = req.body;
+  const user = await usersCollection.findOne({ uid });
+
+  if (!user) return res.status(404).send({ success: false });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if(isMatch){
+    res.send({ success: true });
+  }
+}); // Api endpoint -> /users/verify-password
 
 // Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
@@ -197,6 +217,27 @@ router.patch("/convert-role/:email", async(req, res) => {
   const updateResult = await usersCollection.updateOne(query, updateRole);
   res.status(200).send({message: "Updated the role", updateResult});
 }); // API endpoint -> /users/convert-role
+
+router.patch("/update-password/:uid", async (req, res) => {
+  const { uid } = req.params;
+  const { newPassword } = req.body;
+  
+  if (!newPassword) {
+    return res.status(400).send({ message: "New password is required" });
+  }
+  
+  const bcryptPassword = await hashPassword(newPassword);
+  const result = await usersCollection.updateOne(
+      { uid },
+      { $set: { password: bcryptPassword } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    res.status(200).send({ message: "Password updated in database", success: true });
+}); // API endpoint -> /users/update-password/:uid
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
