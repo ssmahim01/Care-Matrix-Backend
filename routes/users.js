@@ -154,6 +154,38 @@ router.patch("/last-login-at/:email", async (req, res) => {
   res.send({ data: result, message: "lastLoginAt Time updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
 
+
+
+router.put("/update-profile/:email", async (req, res) => {
+  try {
+    const email = req.params.email
+    const { data, profileImage } = req.body
+
+    if (!email || !data) {
+      return res.status(400).json({ message: "Missing email or data" })
+    }
+
+    const updateData = {
+      ...data,
+    }
+    if (profileImage) {
+      updateData.profileImage = profileImage 
+    }
+    const result = await usersCollection.updateOne(
+      { email },
+      { $set: updateData }
+    )
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    res.status(200).json({ message: "Profile updated successfully" })
+  } catch (error) {
+    console.error("Error updating profile:", error)
+    res.status(500).json({ message: "Internal server error" })
+  }
+})
+
 // Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
   const email = req.params.email;
@@ -186,16 +218,16 @@ router.patch("/update-photo/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-photo/:email
 
 // Update the role
-router.patch("/convert-role/:email", async(req, res) => {
+router.patch("/convert-role/:email", async (req, res) => {
   const email = req.params.email;
-  const query = {email: email};
+  const query = { email: email };
 
   const updateRole = {
-    $set: {role: "Doctor"}
+    $set: { role: "Doctor" }
   }
 
   const updateResult = await usersCollection.updateOne(query, updateRole);
-  res.status(200).send({message: "Updated the role", updateResult});
+  res.status(200).send({ message: "Updated the role", updateResult });
 }); // API endpoint -> /users/convert-role
 
 // ADMIN ONLY -> Get all users --->
