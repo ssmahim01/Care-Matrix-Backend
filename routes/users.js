@@ -10,7 +10,7 @@ import jwt from "jsonwebtoken";
 // Hashing password
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, saltRounds);
-}
+};
 
 // Initialize usersCollection
 let usersCollection;
@@ -24,6 +24,7 @@ await initCollection();
 router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
+
 
   // If new user, handle password for non-social sign-ins
   let hashedPassword = null;
@@ -40,7 +41,7 @@ router.post("/", async (req, res) => {
   const result = await usersCollection.insertOne({
     role: "patient",
     ...user,
-    ...(hashedPassword && { password: hashedPassword })
+    ...(hashedPassword && { password: hashedPassword }),
   });
   res.send({
     data: result,
@@ -122,11 +123,21 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Get user phoneNumber --->
+router.get("/phone/:uid", async (req, res) => {
+  const uid = req.params.uid;
+  const result = await usersCollection.findOne({ uid });
+  res.send({ phoneNumber: result?.phoneNumber });
+}); // Api endpoint -> /users/phone/:uid
+
 // Retrieve lockUntil and failedAttempts data from DB
 router.get("/lock-profile/:email", async (req, res) => {
   const email = req.params.email;
   const result = await usersCollection.findOne({ email });
-  res.send({ lockUntil: result?.lockUntil, failedAttempts: result?.failedAttempts });
+  res.send({
+    lockUntil: result?.lockUntil,
+    failedAttempts: result?.failedAttempts,
+  });
 }); // Api endpoint -> /users/lock-profile/:email
 
 // Update user lastLoginAt --->
@@ -143,8 +154,22 @@ router.patch("/last-login-at/:email", async (req, res) => {
   res.send({ data: result, message: "lastLoginAt Time updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
 
-// Update user profile --->
-router.put("/update-profile/:email", async (req, res) => {
+// Update user name --->
+router.patch("/update-name/:email", async (req, res) => {
+  const email = req.params.email;
+  const { name } = req.body;
+  const filter = { email };
+  const updatedUserInfo = {
+    $set: {
+      name: name,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUserInfo);
+  res.send({ data: result, message: "Username updated successfully" });
+}); // Api endpoint -> /users/update-name/:email
+
+// Update user photo --->
+router.patch("/update-photo/:email", async (req, res) => {
   const email = req.params.email;
   const { data, profileImage } = req.body;
   const filter = { email };
@@ -157,8 +182,21 @@ router.put("/update-profile/:email", async (req, res) => {
     },
   };
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
-  res.send({ data: result, message: "User profile updated successfully" });
-}); // Api endpoint -> /users/update-profile/:email
+  res.send({ data: result, message: "User Photo updated successfully" });
+}); // Api endpoint -> /users/update-photo/:email
+
+// Update the role
+router.patch("/convert-role/:email", async(req, res) => {
+  const email = req.params.email;
+  const query = {email: email};
+
+  const updateRole = {
+    $set: {role: "Doctor"}
+  }
+
+  const updateResult = await usersCollection.updateOne(query, updateRole);
+  res.status(200).send({message: "Updated the role", updateResult});
+}); // API endpoint -> /users/convert-role
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
