@@ -27,6 +27,7 @@ async function connectDB() {
       bed_booking: db.collection("bed_booking"),
       carts: db.collection("carts"),
       purchase: db.collection("purchase"),
+      favorite_doctors: db.collection("favorite-doctors")
     };
 
     return collections;
