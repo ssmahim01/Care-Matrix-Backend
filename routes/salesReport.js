@@ -118,6 +118,19 @@ router.get("/", async (req, res) => {
       ])
       .toArray();
 
+    const revenuePerDivision = await purchaseCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$customerInfo.division",
+            totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
+            totalOrders: { $sum: 1 },
+          },
+        },
+        { $sort: { totalRevenue: -1 } },
+      ])
+      .toArray();
+
     res.send({
       totalOrders: totalOrders,
       totalPendingOrders: totalPendingOrders,
@@ -126,6 +139,7 @@ router.get("/", async (req, res) => {
       revenuePerDay: revenuePerDay,
       topSellingMedicines: topSellingMedicines,
       topCustomers: topCustomers,
+      revenuePerDivision: revenuePerDivision,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
