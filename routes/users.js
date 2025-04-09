@@ -171,6 +171,8 @@ router.post("/verify-password", async (req, res) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if(isMatch){
     res.send({ success: true });
+  }else {
+    res.send({ success: false, message: "Incorrect current password" });
   }
 }); // Api endpoint -> /users/verify-password
 
