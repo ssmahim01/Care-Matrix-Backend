@@ -14,6 +14,18 @@ async function initCollection() {
 }
 await initCollection();
 
+// Initialize purchaseCollection
+let usersCollection;
+async function initUsersCollection() {
+  try {
+    const collections = await connectDB();
+    usersCollection = collections.users;
+  } catch (error) {
+    console.error("Failed to initialize users collection:", error);
+  }
+}
+await initUsersCollection();
+
 router.get("/", async (req, res) => {
   try {
     const totalOrders = await purchaseCollection.countDocuments();
@@ -103,11 +115,27 @@ router.get("/", async (req, res) => {
           },
         },
         {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "email",
+            as: "userInfo",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userInfo",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
           $project: {
             _id: 0,
             name: 1,
             email: "$_id",
             phone: 1,
+            uid: "$userInfo.uid",
+            photo: "$userInfo.photo",
             totalOrders: 1,
             totalSpent: 1,
           },
