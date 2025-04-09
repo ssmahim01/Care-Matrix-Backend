@@ -27,13 +27,16 @@ router.post("/", async (req, res) => {
 
 router.get("/orders", async (req, res) => {
   try {
-    const email = req.query.email
-    const query = {}
+    const email = req.query.email;
+    const query = {};
     if (email) {
-      query["customerInfo.email"] = email
+      query["customerInfo.email"] = email;
     }
 
-    const result = await purchaseCollection.find(query).sort({ date: -1 }).toArray();
+    const result = await purchaseCollection
+      .find(query)
+      .sort({ date: -1 })
+      .toArray();
     res.send(result);
   } catch (error) {
     res.status(500).send({ message: error.message });
