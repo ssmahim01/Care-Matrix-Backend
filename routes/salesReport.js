@@ -92,6 +92,32 @@ router.get("/", async (req, res) => {
       ])
       .toArray();
 
+    const topCustomers = await purchaseCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$customerInfo.email",
+            name: { $first: "$customerInfo.name" },
+            phone: { $first: "$customerInfo.phone" },
+            totalOrders: { $sum: 1 },
+            totalSpent: { $sum: { $toDouble: "$totalPrice" } },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            email: "$_id",
+            phone: 1,
+            totalOrders: 1,
+            totalSpent: 1,
+          },
+        },
+        { $sort: { totalOrders: -1 } },
+        // { $limit: 5 }
+      ])
+      .toArray();
+
     res.send({
       totalOrders: totalOrders,
       totalPendingOrders: totalPendingOrders,
@@ -99,6 +125,7 @@ router.get("/", async (req, res) => {
       totalRevenue: totalRevenue[0]?.totalRevenue,
       revenuePerDay: revenuePerDay,
       topSellingMedicines: topSellingMedicines,
+      topCustomers: topCustomers,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
