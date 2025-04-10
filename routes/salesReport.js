@@ -140,7 +140,7 @@ router.get("/", async (req, res) => {
             totalSpent: 1,
           },
         },
-        { $sort: { totalOrders: -1 } },
+        { $sort: { totalSpent: -1 } },
         // { $limit: 5 }
       ])
       .toArray();
