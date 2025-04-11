@@ -4,6 +4,16 @@ import getUsersCollection from "../collections/usersCollection.js";
 import express from "express";
 const router = express.Router();
 
+// Get available rewards
+router.get("/available-rewards", async (req, res) => {
+    const predefinedRewards = [
+        { _id: "1", name: "Cafeteria Voucher", pointsRequired: 50 },
+        { _id: "2", name: "Priority Appointment", pointsRequired: 100 },
+        { _id: "3", name: "Wellness Kit", pointsRequired: 75 },
+    ];
+    res.send({ success: true, rewards: predefinedRewards });
+}); // API endpoint -> /rewards/available-rewards
+
 // Get patient’s points and reward history
 router.get("/:userEmail", async (req, res) => {
     const usersCollection = await getUsersCollection();
@@ -16,14 +26,7 @@ router.get("/:userEmail", async (req, res) => {
     const history = await rewardsCollection.find({ userEmail }).toArray();
     const totalPoints = history.reduce((sum, entry) => sum + entry.points, 0);
     res.send({ success: true, totalPoints, history });
-}); // API endpoint -> /rewards/:userId
-
-// Get available rewards
-router.get("/available-rewards", async (req, res) => {
-    const redeemableRewardsCollection = await getRedeemableRewardsCollection();
-    const rewards = await redeemableRewardsCollection.find().toArray();
-    res.send({ success: true, rewards });
-}); // API endpoint -> /rewards/available-rewards
+}); // API endpoint -> /rewards/:userEmail
 
 // Redeem a reward
 router.post("/redeem-reward", async (req, res) => {
@@ -32,11 +35,17 @@ router.post("/redeem-reward", async (req, res) => {
     const rewardsCollection = await getRewardsCollection();
     const redeemableRewardsCollection = await getRedeemableRewardsCollection();
 
+    const predefinedRewards = [
+        { _id: "1", name: "Cafeteria Voucher", pointsRequired: 50 },
+        { _id: "2", name: "Priority Appointment", pointsRequired: 100 },
+        { _id: "3", name: "Wellness Kit", pointsRequired: 75 },
+    ];
+
+    const reward = predefinedRewards.find(r => r._id === rewardId);
+    if (!reward) return res.status(404).send({ success: false, message: "Reward not found" });
+
     const user = await usersCollection.findOne({ email: userEmail });
     if (!user) return res.status(404).send({ success: false, message: "User not found" });
-
-    const reward = await redeemableRewardsCollection.findOne({ _id: rewardId });
-    if (!reward) return res.status(404).send({ success: false, message: "Reward not found" });
 
     const history = await rewardsCollection.find({ userEmail }).toArray();
     const totalPoints = history.reduce((sum, entry) => sum + entry.points, 0);
@@ -62,5 +71,13 @@ router.post("/redeem-reward", async (req, res) => {
 
     res.send({ success: true, message: "Reward redeemed", voucherCode });
 }); // API endpoint -> /rewards/redeem-reward
+
+// Award points after payment
+router.post("/award-points", async (req, res) => {
+    const rewardInfo = req.body;
+    const rewardsCollection = await getRewardsCollection();
+    await rewardsCollection.insertOne(rewardInfo);
+    res.send({ success: true, message: "Points awarded" });
+}); // API Endpoint -> /rewards/award-points
 
 export default router;
