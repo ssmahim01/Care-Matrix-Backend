@@ -322,7 +322,7 @@ router.delete("/delete-user/:id", async (req, res) => {
 // update shopping discount
 router.patch("/update-discount/:email", async (req, res) => {
   const email = req.params.email;
-  console.log(email);
+  // console.log(email);
   const { discount } = req.body;
   const filter = { email: email };
 

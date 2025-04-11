@@ -10,7 +10,7 @@ async function initializeMongoDBCollection() {
             console.error("Rewards collection not found in collections object");
         }
         rewardsCollection = collections.rewards;
-        console.log("Rewards collection initialized successfully");
+        // console.log("Rewards collection initialized successfully");
     } catch (error) {
         console.error("Error initializing database:", error);
     }

@@ -45,7 +45,7 @@ router.get("/:id", async (req, res) => {
         }
 
         const doctor = await doctorsCollection.findOne(query);
-        console.log(doctor);
+        // console.log(doctor);
         res.status(200).send(doctor);
     } catch (error) {
         console.error("Error fetching doctors:", error);

@@ -57,7 +57,7 @@ router.get("/", async (req, res) => {
 router.patch("/quantity/:id", async (req, res) => {
   const id = req.params.id;
   const { quantity } = req.body;
-  console.log(quantity);
+  // console.log(quantity);
   const result = await cartCollection.updateOne(
     { _id: new ObjectId(id) },
     { $set: { quantity } }
@@ -84,15 +84,15 @@ router.delete("/clear/:email", async (req, res) => {
 router.post("/create-payment-intent", async (req, res) => {
   try {
     const { price } = req.body;
-    console.log("Request body:", req.body);
+    // console.log("Request body:", req.body);
 
     if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-      console.log("Validation failed:", { price });
+      // console.log("Validation failed:", { price });
       return res.status(400).json({ error: "Invalid price amount" });
     }
 
     const amount = Math.round(parseFloat(price) * 100);
-    console.log(`Creating payment intent: ৳${price} => ${amount} taka`);
+    // console.log(`Creating payment intent: ৳${price} => ${amount} taka`);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
@@ -102,7 +102,7 @@ router.post("/create-payment-intent", async (req, res) => {
       },
     });
 
-    console.log("Payment intent created:", paymentIntent.id);
+    // console.log("Payment intent created:", paymentIntent.id);
     res.status(200).json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
     console.error("Payment Intent Error:", error.message);

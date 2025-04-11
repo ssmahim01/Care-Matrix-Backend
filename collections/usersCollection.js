@@ -10,7 +10,7 @@ async function initializeMongoDBCollection() {
             console.error("Users collection not found in collections object");
         }
         usersCollection = collections.users;
-        console.log("Users collection initialized successfully");
+        // console.log("Users collection initialized successfully");
     } catch (error) {
         console.error("Error initializing database:", error);
     }

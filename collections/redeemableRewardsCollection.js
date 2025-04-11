@@ -10,7 +10,7 @@ async function mongoDBCollection() {
             console.error("Redeemable rewards collection not found in collections object");
         }
         redeemableRewardsCollection = collections.redeemableRewards;
-        console.log("Redeemable rewards collection initialized successfully");
+        // console.log("Redeemable rewards collection initialized successfully");
     } catch (error) {
         console.error("Error initializing database:", error);
     }
