@@ -1,6 +1,5 @@
 import express from "express";
 import { connectDB } from "../config/connectDB.js";
-import { ObjectId } from "mongodb";
 const router = express.Router();
 
 // Initialize purchaseCollection
@@ -14,6 +13,18 @@ async function initCollection() {
   }
 }
 await initCollection();
+
+// Initialize purchaseCollection
+let usersCollection;
+async function initUsersCollection() {
+  try {
+    const collections = await connectDB();
+    usersCollection = collections.users;
+  } catch (error) {
+    console.error("Failed to initialize users collection:", error);
+  }
+}
+await initUsersCollection();
 
 router.get("/", async (req, res) => {
   try {
@@ -92,6 +103,61 @@ router.get("/", async (req, res) => {
       ])
       .toArray();
 
+    const topCustomers = await purchaseCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$customerInfo.email",
+            name: { $first: "$customerInfo.name" },
+            phone: { $first: "$customerInfo.phone" },
+            totalOrders: { $sum: 1 },
+            totalSpent: { $sum: { $toDouble: "$totalPrice" } },
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "email",
+            as: "userInfo",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userInfo",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            email: "$_id",
+            phone: 1,
+            uid: "$userInfo.uid",
+            photo: "$userInfo.photo",
+            totalOrders: 1,
+            totalSpent: 1,
+          },
+        },
+        { $sort: { totalSpent: -1 } },
+        // { $limit: 5 }
+      ])
+      .toArray();
+
+    const revenuePerDivision = await purchaseCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$customerInfo.division",
+            totalRevenue: { $sum: { $toDouble: "$totalPrice" } },
+            totalOrders: { $sum: 1 },
+          },
+        },
+        { $sort: { totalRevenue: -1 } },
+      ])
+      .toArray();
+
     res.send({
       totalOrders: totalOrders,
       totalPendingOrders: totalPendingOrders,
@@ -99,6 +165,8 @@ router.get("/", async (req, res) => {
       totalRevenue: totalRevenue[0]?.totalRevenue,
       revenuePerDay: revenuePerDay,
       topSellingMedicines: topSellingMedicines,
+      topCustomers: topCustomers,
+      revenuePerDivision: revenuePerDivision,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });

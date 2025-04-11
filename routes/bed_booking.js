@@ -2,7 +2,9 @@ import express from "express";
 import {
     connectDB
 } from "../config/connectDB.js";
-import { ObjectId } from "mongodb";
+import {
+    ObjectId
+} from "mongodb";
 
 const router = express.Router();
 
@@ -15,8 +17,20 @@ async function initCollection() {
 
 await initCollection();
 
-router.get("/", async(req, res) => {
-    const bedBookings = await bed_bookingCollection.find().toArray();
+router.get("/", async (req, res) => {
+    const bedBookings = await bed_bookingCollection.find().sort({
+        time: -1
+    }).toArray();
+    res.send(bedBookings);
+})
+
+// get info for specific user 
+router.get("/:email", async (req, res) => {
+    const email = req.params.email;
+    const query = { authorEmail: email };
+    const bedBookings = await bed_bookingCollection.find(query).sort({
+        time: -1
+    }).toArray();
     res.send(bedBookings);
 })
 
@@ -40,7 +54,7 @@ router.patch("/status/:id", async (req, res) => {
     res.send(result)
 });
 
-router.post("/", async(req, res) => {
+router.post("/", async (req, res) => {
     const bedBookingInfo = await req.body;
     const result = await bed_bookingCollection.insertOne(bedBookingInfo)
     res.send(result)
