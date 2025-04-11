@@ -11,6 +11,7 @@ import carts from "./carts.js";
 import purchase from "./purchase.js";
 import upgradeRequests from "./upgradeRequests.js";
 import doctorRoutes from "./doctors.js";
+import rewardsRoute from "./rewards.js";
 import pharmacistRoutes from "./pharmacist.js";
 import receptionistRoutes from "./receptionist.js";
 import salesReportRoutes from "./salesReport.js";
@@ -39,5 +40,6 @@ router.use("/purchase", purchase); // purchase Api routes
 router.use("/user-requests", upgradeRequests); // Request API routes
 router.use("/sales-report", salesReportRoutes); // SalesReport API routes
 router.use("/favorite-doctors", favorite_doctors); // Request API routes
+router.use("/rewards", rewardsRoute); // Rewards API route
 
 export default router;
