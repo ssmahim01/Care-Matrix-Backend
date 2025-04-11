@@ -43,6 +43,17 @@ router.get("/doctors", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const findAll = await requestCollection.find({});
+    const result = await findAll.toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).send({ message: "Error fetching requests", error });
+  }
+});
+
 // Insert the request data
 router.post("/", async (req, res) => {
   const requestData = req.body;
@@ -191,6 +202,17 @@ router.patch("/assign-status/:id", async (req, res) => {
   }
   const result = await requestCollection.updateOne(query, assignStatus);
   res.status(200).send({ message: "Assigned the user", result });
+});
+
+// Update Schedule
+router.put("/doctors/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedDoctor = req.body;
+    const result = await requestCollection.updateOne(
+      { _id: id },
+      { $set: { availableDate: updatedDoctor } }
+    );
+    res.send({ success: true, message: "Doctor updated" });
 });
 
 export default router;

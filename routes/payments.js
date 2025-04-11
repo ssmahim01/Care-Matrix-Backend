@@ -16,7 +16,7 @@ async function initCollection() {
             throw new Error('Payments collection not initialized.');
         }
         paymentsCollection = dbCollections.payments;
-        console.log('Payments collection initialized successfully.');
+        // console.log('Payments collection initialized successfully.');
     } catch (error) {
         console.error('Failed to initialize payments collection:', error.message);
     }
@@ -35,7 +35,7 @@ router.post('/create-payment-intent', async (req, res) => {
         }
 
         const amount = Math.round(parseFloat(fee) * 100); // Convert to cents
-        console.log(`Creating payment intent: $${fee} => ${amount} cents`);
+        // console.log(`Creating payment intent: $${fee} => ${amount} cents`);
 
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
@@ -52,7 +52,7 @@ router.post('/create-payment-intent', async (req, res) => {
 
 // Save Payment Data
 router.post('/', async (req, res) => {
-    console.log('POST /payments endpoint hit');
+    // console.log('POST /payments endpoint hit');
     try {
         if (!paymentsCollection) {
             console.error('Payments collection not available');
@@ -74,7 +74,7 @@ router.post('/', async (req, res) => {
             createdAt: new Date(),
         };
 
-        console.log('Saving payment record:', paymentRecord);
+        // console.log('Saving payment record:', paymentRecord);
 
         const result = await paymentsCollection.insertOne(paymentRecord);
         res.status(200).json({ message: 'Payment data saved successfully', paymentId: result.insertedId });
