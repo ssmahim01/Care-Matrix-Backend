@@ -107,6 +107,7 @@ router.get("/stats/:email", async (req, res) => {
           status: 1,
           _id: 1,
         })
+        .sort({ admissionDate: -1 })
         .toArray(),
       medicineCart: await cartsCollection
         .find({ "customer.customerEmail": email })
@@ -137,7 +138,7 @@ router.get("/stats/:email", async (req, res) => {
           },
         })
         .sort({ date: -1 })
-        .limit(3)
+        .limit(4)
         .toArray(),
     };
 
