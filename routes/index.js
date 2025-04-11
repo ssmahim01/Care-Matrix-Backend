@@ -15,7 +15,8 @@ import rewardsRoute from "./rewards.js";
 import pharmacistRoutes from "./pharmacist.js";
 import receptionistRoutes from "./receptionist.js";
 import salesReportRoutes from "./salesReport.js";
-import favorite_doctors from './favorite-doctors.js'
+import favorite_doctors from "./favorite-doctors.js";
+import adminStats from "./adminStats.js";
 
 const router = express.Router();
 
@@ -41,5 +42,6 @@ router.use("/user-requests", upgradeRequests); // Request API routes
 router.use("/sales-report", salesReportRoutes); // SalesReport API routes
 router.use("/favorite-doctors", favorite_doctors); // Request API routes
 router.use("/rewards", rewardsRoute); // Rewards API route
+router.use("/adminStats", adminStats); // admin stats API route
 
 export default router;
