@@ -70,7 +70,87 @@ async function initRoleUpgradeRequests() {
 initRoleUpgradeRequests();
 
 router.get("/stats/:email", async (req, res) => {
-  
+  try {
+    const email = req.params.email;
+
+    const favoriteDoctors = await favoriteDoctorCollection
+      .find({ email })
+      .toArray();
+
+    const upcomingAppointments = await appointmentsCollection.countDocuments({
+      email,
+    });
+
+    const totalRoleUpgradeRequests =
+      await roleUpgradeRequestsCollections.countDocuments({
+        userEmail: email,
+      });
+
+    const result = {
+      appointment: await appointmentsCollection.findOne(
+        { email, status: "pending" },
+        { sort: { date: 1 } }
+      ),
+      bedBookings: await bedBookingCollection
+        .find({ authorEmail: email })
+        .project({
+          bedTitle: 1,
+          bedPrice: 1,
+          admissionDate: 1,
+          status: 1,
+          _id: 1,
+        })
+        .toArray(),
+      medicineCart: await cartsCollection
+        .find({ "customer.customerEmail": email })
+        .project({
+          price: 1,
+          medicineName: 1,
+          quantity: 1,
+          _id: 1,
+        })
+        .toArray(),
+      purchaseHistory: await purchaseCollection
+        .find({ "customerInfo.email": email })
+        .project({
+          _id: 1,
+          totalPrice: 1,
+          orderStatus: 1,
+          paymentStatus: 1,
+          date: 1,
+          medicines: {
+            $map: {
+              input: "$medicines",
+              as: "med",
+              in: {
+                name: "$$med.medicineName",
+                qty: "$$med.quantity",
+              },
+            },
+          },
+        })
+        .sort({ date: -1 })
+        .limit(3)
+        .toArray(),
+    };
+
+    result.overviewStats = {
+      upcomingAppointments: upcomingAppointments,
+      favoriteDoctors: favoriteDoctors.length,
+      bedBookingRequests: result.bedBookings.length,
+      totalRoleUpgradeRequests: totalRoleUpgradeRequests,
+      itemsInCart: result.medicineCart.length,
+      totalOrders: result.purchaseHistory.length,
+      totalSpent: result.purchaseHistory.reduce(
+        (acc, order) => acc + parseFloat(order.totalPrice),
+        0
+      ),
+    };
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 });
 
 export default router;
