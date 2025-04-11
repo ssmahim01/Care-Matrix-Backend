@@ -86,6 +86,10 @@ router.get("/stats/:email", async (req, res) => {
         userEmail: email,
       });
 
+    const totalPurchase = await purchaseCollection.countDocuments({
+      "customerInfo.email": email,
+    });
+
     const result = {
       appointment: await appointmentsCollection.findOne(
         { email, status: "pending" },
@@ -140,7 +144,7 @@ router.get("/stats/:email", async (req, res) => {
       bedBookingRequests: result.bedBookings.length,
       totalRoleUpgradeRequests: totalRoleUpgradeRequests,
       itemsInCart: result.medicineCart.length,
-      totalOrders: result.purchaseHistory.length,
+      totalOrders: totalPurchase,
       totalSpent: result.purchaseHistory.reduce(
         (acc, order) => acc + parseFloat(order.totalPrice),
         0
