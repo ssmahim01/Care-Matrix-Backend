@@ -133,7 +133,7 @@ router.get("/individual/:uid", async (req, res) => {
 router.get("/phone/:uid", async (req, res) => {
   const uid = req.params.uid;
   const result = await usersCollection.findOne({ uid });
-  res.send({ phoneNumber: result?.phoneNumber });
+  res.send({ phoneNumber: result?.phoneNumber || null });
 }); // Api endpoint -> /users/phone/:uid
 
 // Retrieve lockUntil and failedAttempts data from DB
