@@ -98,6 +98,39 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
+// Get users by search params by their name
+router.get("/search-users", async (req, res) => {
+  const search = req.query.name?.trim();
+  if (!search) {
+    return res.status(400).send({ message: "Missing 'name' query parameter." });
+  }
+  if (!search) {
+    // Return all users if no search term is provided
+    const allUsers = await requestCollection.find().toArray();
+    return res.send(allUsers);
+  }
+  try {
+    const result = await requestCollection
+      .find({
+        userName: { $regex: search, $options: "i" },
+      })
+      .project({
+        _id: 1,
+        userName: 1,
+        userEmail: 1,
+        requestedRole: 1,
+        userPhoto: 1,
+        contactNumber: 1,
+      })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).send({ message: "Failed to search users.", error });
+  }
+}); 
+
 // Delete Request
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;
@@ -187,6 +220,31 @@ router.patch("/reject-status/:id", async (req, res) => {
   res.status(200).send({ message: "Rejected the user", result });
 });
 
+// Delete user
+router.delete("/delete-user/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  try {
+    const user = await requestCollection.findOne(query);
+    if (!user) {
+      return res.status(404).send({ message: `User not found.` });
+    }
+    const result = await requestCollection.deleteOne(query);
+    if (result.deletedCount === 0) {
+      return res.status(500).send({ message: "Failed to delete user." });
+    }
+    res.send({
+      message: `User: '${user.email}' deleted successfully!`,
+    });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).send({
+      error: "Failed to delete user.",
+      details: err.message,
+    });
+  }
+});
+
 // Assign user
 router.patch("/assign-status/:id", async (req, res) => {
   const id = req.params.id;
@@ -213,6 +271,17 @@ router.put("/doctors/:id", async (req, res) => {
       { $set: { availableDate: updatedDoctor } }
     );
     res.send({ success: true, message: "Doctor updated" });
+});
+
+// Update staff
+router.put("/update-profile/:email", async (req, res) => {
+  const { email } = req.params;
+  const {data, profileImage} = req.body;
+    const result = await requestCollection.updateOne(
+      { userEmail: email },
+      { $set: { ...data, userPhoto: profileImage } }
+    );
+    res.send({ success: true, message: "Staff updated" });
 });
 
 export default router;
