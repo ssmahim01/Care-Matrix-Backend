@@ -120,7 +120,7 @@ router.get("/stats", async (req, res) => {
             // Bed Stats
             totalBeds,
             totalAvailableBeds: bedStatusBreakdown.find(s => s.status === "available")?.count || 0,
-            totalOccupiedBeds: bedStatusBreakdown.find(s => s.status === "occupied")?.count || 0,
+            totalOccupiedBeds: bedStatusBreakdown.find(s => s.status === "booked")?.count || 0,
             totalRequestedBeds: bedStatusBreakdown.find(s => s.status === "requested")?.count || 0,
             // Charts Data for Beds
             bedStatusBreakdown,
@@ -128,7 +128,7 @@ router.get("/stats", async (req, res) => {
             // Bed Booking Stats
             totalBedBookings,
             totalPendingBedBookings: bedBookingStatusBreakdown.find(s => s.status === "pending")?.count || 0,
-            totalApprovedBedBookings: bedBookingStatusBreakdown.find(s => s.status === "Approved")?.count || 0,
+            totalApprovedBedBookings: bedBookingStatusBreakdown.find(s => s.status === "accepted")?.count || 0,
             upcomingAdmissions,
             // Charts Data for Bed Bookings
             bedBookingStatusBreakdown,
