@@ -25,10 +25,7 @@ router.get("/contacts", async (req, res) => {
 router.post("/add-contact", async (req, res) => {
     try {
         const contact = req.body;
-
         const result = await emergencyCollection.insertOne({ ...contact });
-        console.log("Contact added:", contact);
-        console.log("Result:", result);
         res.status(201).send({
             message: "Contact added successfully",
             contact,
@@ -41,7 +38,6 @@ router.post("/add-contact", async (req, res) => {
         });
     }
 }); // API endpoint -> /emergency/add-contact
-
 
 // Delete a contact from db
 router.delete("/delete-contact/:id", async (req, res) => {
@@ -88,8 +84,7 @@ router.put('/update-contact/:id', async (req, res) => {
     }
 }); // API endpoint -> /emergency/update-contact/:id
 
-
-// get users by search params by their name
+// get emergency contact by search params by their name
 router.get("/search", async (req, res) => {
     const search = req.query.name?.trim();
 

@@ -28,7 +28,8 @@ async function connectDB() {
       carts: db.collection("carts"),
       purchase: db.collection("purchase"),
       favorite_doctors: db.collection("favorite-doctors"),
-      emergency: db.collection("emergency")
+      emergency: db.collection("emergency"),
+      ambulance: db.collection("ambulance")
     };
 
     return collections;
