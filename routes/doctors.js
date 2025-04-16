@@ -77,9 +77,9 @@ router.post("/", async (req, res) => {
     }
 });
 
-router.delete("/:id", async (req, res) => {
-    const id = req.params.id;
-    const query = {_id: new ObjectId(id)};
+router.delete("/:email", async (req, res) => {
+    const email = req.params.email;
+    const query = {email};
     try {
         const deleteResult = await doctorsCollection.deleteOne(query);
        res.status(200).send({ message: "Doctor deleted successfully", deleteResult});
