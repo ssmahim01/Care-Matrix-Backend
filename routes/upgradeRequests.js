@@ -129,7 +129,7 @@ router.get("/search-users", async (req, res) => {
     console.error("Search error:", error);
     res.status(500).send({ message: "Failed to search users.", error });
   }
-}); 
+});
 
 // Delete Request
 router.delete("/:id", async (req, res) => {
@@ -263,25 +263,34 @@ router.patch("/assign-status/:id", async (req, res) => {
 });
 
 // Update Schedule
-router.put("/doctors/:id", async (req, res) => {
+router.put("/update-availability/:id", async (req, res) => {
   const { id } = req.params;
-  const updatedDoctor = req.body;
-    const result = await requestCollection.updateOne(
-      { _id: id },
-      { $set: { availableDate: updatedDoctor } }
-    );
-    res.send({ success: true, message: "Doctor updated" });
+  const updatedAvailability = req.body;
+  console.log(updatedAvailability, id);
+
+  const updatedDoctor = {
+    $set: {
+      availableDate: updatedAvailability.availableDate,
+      shift: updatedAvailability.shift
+    }
+  };
+
+  const result = await requestCollection.updateOne(
+    { _id: id },
+    { updatedDoctor }
+  );
+  res.status(200).send({ success: true, message: "Doctor updated", result });
 });
 
 // Update staff
 router.put("/update-profile/:email", async (req, res) => {
   const { email } = req.params;
-  const {data, profileImage} = req.body;
-    const result = await requestCollection.updateOne(
-      { userEmail: email },
-      { $set: { ...data, userPhoto: profileImage } }
-    );
-    res.send({ success: true, message: "Staff updated" });
+  const { data, profileImage } = req.body;
+  const result = await requestCollection.updateOne(
+    { userEmail: email },
+    { $set: { ...data, userPhoto: profileImage } }
+  );
+  res.send({ success: true, message: "Staff updated" });
 });
 
 export default router;
