@@ -155,7 +155,7 @@ router.patch("/last-login-at/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-profile/:email
 
 
-
+// update user profile route
 router.put("/update-profile/:email", async (req, res) => {
   try {
     const email = req.params.email
@@ -184,7 +184,7 @@ router.put("/update-profile/:email", async (req, res) => {
     console.error("Error updating profile:", error)
     res.status(500).json({ message: "Internal server error" })
   }
-})
+}) // API endpoint --> /users/update-profile/{value-->email}
 
 // Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
