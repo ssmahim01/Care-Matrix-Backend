@@ -89,9 +89,46 @@ router.put('/update-contact/:id', async (req, res) => {
 }); // API endpoint -> /emergency/update-contact/:id
 
 
+// get users by search params by their name
+router.get("/search", async (req, res) => {
+    const search = req.query.name?.trim();
+
+    if (!search) {
+      return res.status(400).send({ message: "Missing query parameter." });
+    }
+    if (!search) {
+      // Return all users if no search term is provided
+      const allUsers = await emergencyCollection.find().toArray();
+      return res.send(allUsers);
+    }
+    try {
+      const result = await emergencyCollection
+        .find({
+          name: { $regex: search, $options: "i" },
+          
+        })
+        .project({
+          _id: 1,
+          name: 1,
+          email: 1,
+          type: 1,
+          address: 1,
+          phone: 1,
+          available: 1,
+        })
+        .toArray();
+  
+      res.send(result);
+    } catch (error) {
+      console.error("Search error:", error);
+      res.status(500).send({ message: "Failed to search contacts.", error });
+    }
+  }); // Api endpoint -> /users/search?contact={value}
+
+
 // ADMIN ONLY -> Get emergency text --->
 router.get("/", async (req, res) => {
-    res.send("tel");
+    res.send("emergency routes starting endpoint");
 }); // Api endpoint -> /emergency
 
 
