@@ -17,6 +17,7 @@ router.post("/", async (req, res) => {
   try {
     const message = req.body;
     const result = await contactCollection.insertOne(message);
+
     res.send({
       data: result,
       message: "Contact Message Inserted In DB",
@@ -26,4 +27,16 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const result = await contactCollection.find().toArray();
+    const resultWithTimestamp = result.map((msg) => ({
+      ...msg,
+      createdAt: msg._id.getTimestamp().toISOString(),
+    }));
+    res.send(resultWithTimestamp);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 export default router;
