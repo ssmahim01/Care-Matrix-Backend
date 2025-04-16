@@ -29,7 +29,8 @@ async function connectDB() {
       rewards: db.collection("rewards"),
       redeemableRewards: db.collection("redeemableRewards"),
       purchase: db.collection("purchase"),
-      favorite_doctors: db.collection("favorite-doctors")
+      favorite_doctors: db.collection("favorite-doctors"),
+      contacts: db.collection("contacts")
     };
 
     return collections;

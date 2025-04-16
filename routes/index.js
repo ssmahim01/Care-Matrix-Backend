@@ -18,6 +18,7 @@ import salesReportRoutes from "./salesReport.js";
 import favorite_doctors from "./favorite-doctors.js";
 import patientRoutes from "./patient.js";
 import adminStats from "./adminStats.js";
+import contactRoutes from "./contact.js";
 
 const router = express.Router();
 
@@ -45,5 +46,6 @@ router.use("/favorite-doctors", favorite_doctors); // Request API routes
 router.use("/patient", patientRoutes); // Request API routes
 router.use("/rewards", rewardsRoute); // Rewards API route
 router.use("/adminStats", adminStats); // admin stats API route
+router.use("/contact", contactRoutes); // Contact API route
 
 export default router;

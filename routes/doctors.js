@@ -3,7 +3,6 @@ import { connectDB, collections } from "../config/connectDB.js";
 import verifyToken from "../middleware/verifyToken.js";
 import verifyAdministrator from "../middleware/verifyAdministrator.js";
 import { ObjectId } from "mongodb";
-import moment from "moment";
 const router = express.Router();
 
 let doctorsCollection;
@@ -21,14 +20,39 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
-router.get("/", async (req, res) => {
+router.get("/all", async (req, res) => {
+    const { search = "", sort = "" } = req.query;
+
     try {
+        let searchOptions = {
+            $or: [
+                { name: { $regex: search, $options: "i" } },
+                { title: { $regex: search, $options: "i" } },
+            ]
+        };
+
         if (!doctorsCollection) {
             return res.status(500).send({ message: "Doctors collection is unavailable" });
         }
 
-        const doctors = await doctorsCollection.find().toArray();
+        let doctors = await doctorsCollection.find(searchOptions).toArray();
         // console.log(doctors);
+
+        // Sort the doctors based on consultation_fee (remove $ and convert to number)
+        if (sort === "asc") {
+            doctors.sort((a, b) => {
+                const feeA = parseInt(a.consultation_fee.replace("$", "")) || 0;
+                const feeB = parseInt(b.consultation_fee.replace("$", "")) || 0;
+                return feeA - feeB;
+            });
+        } else if (sort === "desc") {
+            doctors.sort((a, b) => {
+                const feeA = parseInt(a.consultation_fee.replace("$", "")) || 0;
+                const feeB = parseInt(b.consultation_fee.replace("$", "")) || 0;
+                return feeB - feeA;
+            });
+        }
+
         res.status(200).send(doctors);
     } catch (error) {
         console.error("Error fetching doctors:", error);
@@ -38,7 +62,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const id = req.params.id;
-    const query = {_id: new ObjectId(id)};
+    const query = { _id: new ObjectId(id) };
     try {
         if (!doctorsCollection) {
             return res.status(500).send({ message: "Doctors collection is unavailable" });
@@ -79,31 +103,31 @@ router.post("/", async (req, res) => {
 
 router.delete("/:email", async (req, res) => {
     const email = req.params.email;
-    const query = {email};
+    const query = { email };
     try {
         const deleteResult = await doctorsCollection.deleteOne(query);
-       res.status(200).send({ message: "Doctor deleted successfully", deleteResult});
+        res.status(200).send({ message: "Doctor deleted successfully", deleteResult });
     } catch (error) {
         res.status(500).send({ message: "Error deleting doctor", error });
     }
 })
 
-router.put("/update-availability/:id", async(req, res) => {
+router.put("/update-availability/:id", async (req, res) => {
     const id = req.params.id;
-    const query = {_id: new ObjectId(id)};
+    const query = { _id: new ObjectId(id) };
     const updatedAvailability = req.body;
 
     try {
-        const options = {upsert: true};
+        const options = { upsert: true };
         const updatedData = {
-            $set: {updatedAvailability}
+            $set: { updatedAvailability }
         }
 
         const updateResult = await doctorsCollection.updateOne(query, updatedData, options);
 
-        res.status(200).send({message: "Updated doctor info", updateResult});
+        res.status(200).send({ message: "Updated doctor info", updateResult });
     } catch (error) {
-        res.status(500).send({message: "Error updating doctor", error});
+        res.status(500).send({ message: "Error updating doctor", error });
     }
 })
 
