@@ -33,7 +33,6 @@ router.get("/", async (req, res) => {
         },
         {
           $facet: {
-            // 1️⃣ Total Revenue
             totalRevenue: [
               {
                 $group: {
@@ -49,7 +48,6 @@ router.get("/", async (req, res) => {
                 },
               },
             ],
-            // 2️⃣ Revenue Per Day
             revenueByDay: [
               {
                 $group: {
@@ -71,9 +69,31 @@ router.get("/", async (req, res) => {
                   _id: 0,
                 },
               },
-              { $sort: { _id: 1 } },
+              { $limit: 7 },
             ],
-            // 3️⃣ Revenue By Doctor
+            revenueByAllDates: [
+              {
+                $group: {
+                  _id: {
+                    $dateToString: {
+                      format: "%Y-%m-%d",
+                      date: "$paymentDateObj",
+                    },
+                  },
+                  totalRevenue: { $sum: "$amountInt" },
+                  appointments: { $sum: 1 },
+                },
+              },
+              {
+                $project: {
+                  date: "$_id",
+                  totalRevenue: 1,
+                  appointments: 1,
+                  _id: 0,
+                },
+              },
+              { $sort: { date: -1 } },
+            ],
             doctorPerformance: [
               {
                 $group: {
@@ -88,13 +108,12 @@ router.get("/", async (req, res) => {
                   doctor: "$_id",
                   totalRevenue: 1,
                   appointments: 1,
-                  avgFee:1,
+                  avgFee: 1,
                   _id: 0,
                 },
               },
               { $sort: { total: -1 } },
             ],
-            // 4️⃣ Top Patients
             topPatients: [
               {
                 $group: {
@@ -116,7 +135,6 @@ router.get("/", async (req, res) => {
               { $sort: { totalSpent: -1 } },
               { $limit: 5 },
             ],
-            // 6️⃣ Unique Patients
             uniquePatients: [
               {
                 $group: {
@@ -127,7 +145,6 @@ router.get("/", async (req, res) => {
                 $count: "count",
               },
             ],
-            // 7️⃣ Appointments Today
             appointmentsToday: [
               {
                 $match: {
@@ -150,13 +167,19 @@ router.get("/", async (req, res) => {
       data[0].totalRevenue[0].total / totalAppointments
     ).toFixed(2);
 
+    const avgRevenuePerDates = (
+      data[0].totalRevenue[0].total / data[0].revenueByDay.length
+    ).toFixed(2);
+
     res.json({
       totalRevenue: data[0].totalRevenue[0].total,
       uniquePatients: data[0].uniquePatients[0].count,
       appointmentsToday: data[0].appointmentsToday[0].count,
       avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment),
+      avgRevenuePerDates: parseInt(avgRevenuePerDates),
       totalAppointments: totalAppointments,
       revenueByDay: data[0].revenueByDay,
+      revenueByAllDates: data[0].revenueByAllDates,
       doctorPerformance: data[0].doctorPerformance,
       topPatients: data[0].topPatients,
     });
