@@ -125,7 +125,7 @@ router.get("/search", async (req, res) => {
       console.error("Search error:", error);
       res.status(500).send({ message: "Failed to search users.", error });
     }
-  });
+});
   
 
 
