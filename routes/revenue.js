@@ -17,7 +17,146 @@ async function initCollection() {
 initCollection();
 
 router.get("/", async (req, res) => {
+  try {
+    const data = await paymentsCollection
+      .aggregate([
+        {
+          $match: {
+            paymentStatus: "succeeded",
+          },
+        },
+        {
+          $addFields: {
+            amountInt: { $toInt: "$amount" },
+            paymentDateObj: { $toDate: "$paymentDate" },
+          },
+        },
+        {
+          $facet: {
+            // 1️⃣ Total Revenue
+            totalRevenue: [
+              {
+                $group: {
+                  _id: null,
+                  total: { $sum: "$amountInt" },
+                  count: { $sum: 1 },
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  total: 1,
+                },
+              },
+            ],
+            // 2️⃣ Revenue Per Day
+            revenueByDay: [
+              {
+                $group: {
+                  _id: {
+                    $dateToString: {
+                      format: "%Y-%m-%d",
+                      date: "$paymentDateObj",
+                    },
+                  },
+                  total: { $sum: "$amountInt" },
+                  count: { $sum: 1 },
+                },
+              },
+              { $sort: { _id: 1 } },
+            ],
+            // 3️⃣ Revenue By Doctor
+            revenueByDoctor: [
+              {
+                $group: {
+                  _id: "$appointmentInfo.doctorName",
+                  totalRevenue: { $sum: "$amountInt" },
+                  appointments: { $sum: 1 },
+                },
+              },
+              {
+                $project: {
+                    doctor: "$_id",
+                    totalRevenue: 1,
+                    appointments: 1,
+                    _id: 0
+                }
+              },
+              { $sort: { total: -1 } },
+            ],
+            // 4️⃣ Top Patients
+            topPatients: [
+              {
+                $group: {
+                  _id: "$appointmentInfo.email",
+                  patientName: { $first: "$appointmentInfo.name" },
+                  totalSpent: { $sum: "$amountInt" },
+                  appointments: { $sum: 1 },
+                },
+              },
+              { $sort: { totalSpent: -1 } },
+              { $limit: 5 },
+            ],
+            // 5️⃣ Doctor Performance Table
+            doctorPerformance: [
+              {
+                $group: {
+                  _id: "$appointmentInfo.doctorName",
+                  revenue: { $sum: "$amountInt" },
+                  appointments: { $sum: 1 },
+                  avgFee: { $avg: "$amountInt" },
+                },
+              },
+              { $sort: { revenue: -1 } },
+            ],
+            // 6️⃣ Unique Patients
+            uniquePatients: [
+              {
+                $group: {
+                  _id: "$appointmentInfo.email",
+                },
+              },
+              {
+                $count: "count",
+              },
+            ],
+            // 7️⃣ Appointments Today
+            appointmentsToday: [
+              {
+                $match: {
+                  "appointmentInfo.date": new Date()
+                    .toISOString()
+                    .split("T")[0],
+                },
+              },
+              {
+                $count: "count",
+              },
+            ],
+          },
+        },
+      ])
+      .toArray();
 
+    const totalAppointments = await paymentsCollection.countDocuments();
+    const avgRevenuePerAppointment = (
+      data[0].totalRevenue[0].total / totalAppointments
+    ).toFixed(2);
+
+    res.json({
+      totalRevenue: data[0].totalRevenue[0].total,
+      uniquePatients: data[0].uniquePatients[0].count,
+      appointmentsToday: data[0].appointmentsToday[0].count,
+      avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment),
+      totalAppointments: totalAppointments,
+      revenueByDay: data[0].revenueByDay,
+      revenueByDoctor: data[0].revenueByDoctor,
+      topPatients: data[0].topPatients,
+      doctorPerformance: data[0].doctorPerformance,
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 });
 
 export default router;
