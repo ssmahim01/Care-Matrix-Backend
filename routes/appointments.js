@@ -66,8 +66,17 @@ router.patch("/:id", async(req, res) => {
 // Get appointments for patients
 router.get('/patients/:email', async(req, res)=>{
   const email = req.params.email;
+  const sortFormat = req.query.sort;
+  console.log("sort by ", sortFormat);
   const query = {email: email}
-  const result = await appointmentsCollection.find(query).toArray()
+  let cursor = appointmentsCollection.find(query);
+
+  if (sortFormat === "asc") {
+    cursor = cursor.sort({ date: 1 }); // ascending
+  } else if (sortFormat === "desc") {
+    cursor = cursor.sort({ date: -1 }); // descending
+  }
+  const result = await cursor.toArray()
   res.send(result)
 })
 
