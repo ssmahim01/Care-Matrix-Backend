@@ -15,7 +15,8 @@ import pharmacistRoutes from "./pharmacist.js";
 import salesReportRoutes from "./salesReport.js";
 import favorite_doctors from './favorite-doctors.js'
 import emergency from './emergency.js'
-import ambulance from './emergency.js'
+import ambulance from './Ambulance.js'
+import triage from "./triage.js"
 
 const router = express.Router();
 
@@ -41,5 +42,6 @@ router.use("/sales-report", salesReportRoutes); // SalesReport API routes
 router.use("/favorite-doctors", favorite_doctors); // Request API routes
 router.use("/emergency", emergency) // Emergency API routes
 router.use("/ambulance", ambulance) // Ambulance API routes
+router.use("/triage", triage) // Ambulance API routes
 
 export default router;
