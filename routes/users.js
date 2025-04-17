@@ -25,7 +25,6 @@ router.post("/", async (req, res) => {
   const user = req.body;
   const password = user?.password;
 
-
   // If new user, handle password for non-social sign-ins
   let hashedPassword = null;
   if (password) {
@@ -123,11 +122,18 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Get single user
+router.get("/individual/:uid", async (req, res) => {
+  const id = req.params.uid;
+  const result = await usersCollection.findOne({ uid: id });
+  res.send(result);
+}); // Api endpoint -> /users/individual/:uid
+
 // Get user phoneNumber --->
 router.get("/phone/:uid", async (req, res) => {
   const uid = req.params.uid;
   const result = await usersCollection.findOne({ uid });
-  res.send({ phoneNumber: result?.phoneNumber });
+  res.send({ phoneNumber: result?.phoneNumber || null });
 }); // Api endpoint -> /users/phone/:uid
 
 // Retrieve lockUntil and failedAttempts data from DB
@@ -153,6 +159,21 @@ router.patch("/last-login-at/:email", async (req, res) => {
   const result = await usersCollection.updateOne(filter, updatedUserInfo);
   res.send({ data: result, message: "lastLoginAt Time updated successfully" });
 }); // Api endpoint -> /users/update-profile/:email
+
+// Verify Password
+router.post("/verify-password", async (req, res) => {
+  const { uid, password } = req.body;
+  const user = await usersCollection.findOne({ uid });
+
+  if (!user) return res.status(404).send({ success: false });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (isMatch) {
+    res.send({ success: true });
+  }else {
+    res.send({ success: false, message: "Incorrect current password" });
+  }
+}); // Api endpoint -> /users/verify-password
 
 
 // update user profile route
@@ -218,17 +239,40 @@ router.patch("/update-photo/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-photo/:email
 
 // Update the role
-router.patch("/convert-role/:email", async (req, res) => {
+router.patch("/convert-role/:email", async  (req, res) => {
   const email = req.params.email;
   const query = { email: email };
 
   const updateRole = {
-    $set: { role: "Doctor" }
-  }
+    $set: {  role: "Doctor"  },
+  };
 
   const updateResult = await usersCollection.updateOne(query, updateRole);
-  res.status(200).send({ message: "Updated the role", updateResult });
+  res.status(200).send({  message: "Updated the role", updateResult  });
 }); // API endpoint -> /users/convert-role
+
+router.patch("/update-password/:uid", async (req, res) => {
+  const { uid } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    return res.status(400).send({ message: "New password is required" });
+  }
+
+  const bcryptPassword = await hashPassword(newPassword);
+  const result = await usersCollection.updateOne(
+    { uid },
+    { $set: { password: bcryptPassword } }
+  );
+
+  if (result.matchedCount === 0) {
+    return res.status(404).send({ message: "User not found" });
+  }
+
+  res
+    .status(200)
+    .send({ message: "Password updated in database", success: true });
+}); // API endpoint -> /users/update-password/:uid
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
@@ -282,7 +326,6 @@ router.get("/search-users", async (req, res) => {
   }
 }); // Api endpoint -> /users/search-users?name={value}
 
-
 // Delete user from db & firebase --->
 router.delete("/delete-user/:id", async (req, res) => {
   const id = req.params.id;
@@ -307,5 +350,32 @@ router.delete("/delete-user/:id", async (req, res) => {
     });
   }
 }); // Api endpoint -> /users/delete-user/:email
+
+// update shopping discount
+router.patch("/update-discount/:email", async (req, res) => {
+  const email = req.params.email;
+  // console.log(email);
+  const { discount } = req.body;
+  const filter = { email: email };
+
+  const updatedDoc = {
+    $set: {
+      discountVoucher: parseInt(discount),
+    },
+  };
+  try {
+    const result = await usersCollection.updateOne(filter, updatedDoc);
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ error: "Failed to update discount" });
+  }
+});
+
+router.get("/discount/:email", async (req, res) => {
+  const email = req.params.email;
+  const filter = { email: email };
+  const result = await usersCollection.findOne(filter);
+  res.send({ discountVoucher: result?.discountVoucher || null });
+});
 
 export default router;

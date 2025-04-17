@@ -26,7 +26,7 @@ router.get('/:email', async (req, res) => {
 // Post favorite doctor 
 router.post('/', async (req, res) => {
     const info = req.body;
-    console.log(info);
+    // console.log(info);
     const result = await favoriteDoctorsCollection.insertOne(info)
     res.send(result)
 })
