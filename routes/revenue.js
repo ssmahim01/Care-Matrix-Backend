@@ -168,7 +168,7 @@ router.get("/", async (req, res) => {
     ).toFixed(2);
 
     const avgRevenuePerDates = (
-      data[0].totalRevenue[0].total / data[0].revenueByDay.length
+      data[0].totalRevenue[0].total / data[0].revenueByAllDates.length
     ).toFixed(2);
 
     res.json({
