@@ -60,12 +60,12 @@ router.put("/update-assigned/:id", async (req, res) => {
 
         const updatedDoc = {
             $set: {
-              status: "in-treatment",
-              assignedDoctor: assignedDoctor,
-              assignedRoom: assignedRoom,
-              roomId: roomId
+                status: "in-treatment",
+                assignedDoctor: assignedDoctor,
+                assignedRoom: assignedRoom,
+                roomId: roomId
             }
-          };
+        };
 
 
         const result = await triageCollection.updateOne(query, updatedDoc);
@@ -87,11 +87,11 @@ router.put("/update-status/:id", async (req, res) => {
 
         const updatedDoc = {
             $set: {
-              status: "waiting",
-              assignedDoctor: null,
-              assignedRoom: null,
+                status: "completed",
+                assignedDoctor: null,
+                assignedRoom: null,
             }
-          };
+        };
 
         const result = await triageCollection.updateOne(query, updatedDoc);
         if (result.matchedCount === 0) {
@@ -104,6 +104,30 @@ router.put("/update-status/:id", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+
+router.get("/search", async (req, res) => {
+    const search = req.query.name;
+  
+    try {
+      if (!search) {
+        const allUsers = await triageCollection.find().toArray();
+        return res.send(allUsers);
+      }
+  
+      const result = await triageCollection
+        .find({
+          name: { $regex: search, $options: "i" },
+        })
+        .toArray();
+  
+      res.send(result);
+    } catch (error) {
+      console.error("Search error:", error);
+      res.status(500).send({ message: "Failed to search users.", error });
+    }
+  });
+  
+
 
 // ADMIN ONLY -> Get emergency text --->
 router.get("/", async (req, res) => {

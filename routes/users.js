@@ -249,7 +249,7 @@ router.get("/", async (req, res) => {
 
 // get users by search params by their name
 router.get("/search-users", async (req, res) => {
-  const search = req.query.name?.trim();
+  const search = req.query.name;
   if (!search) {
     return res.status(400).send({ message: "Missing 'name' query parameter." });
   }
