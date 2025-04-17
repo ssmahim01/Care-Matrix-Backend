@@ -30,6 +30,11 @@ router.post("/add", async (req, res) => {
     }
 })
 
+router.get("/all-triage", async (req, res)=> {
+   const results = await triageCollection.find().toArray();
+   res.send(results)  
+})
+
 
 // ADMIN ONLY -> Get emergency text --->
 router.get("/", async (req, res) => {
