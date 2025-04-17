@@ -244,12 +244,25 @@ router.patch("/convert-role/:email", async  (req, res) => {
   const query = { email: email };
 
   const updateRole = {
-    $set: {  role: "Doctor"  },
+    $set: { role: "doctor" },
   };
 
   const updateResult = await usersCollection.updateOne(query, updateRole);
   res.status(200).send({  message: "Updated the role", updateResult  });
 }); // API endpoint -> /users/convert-role
+
+// Convert to patient
+router.patch("/convert-patient/:email", async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+
+  const updateRole = {
+    $set: { role: "patient" },
+  };
+
+  const updateResult = await usersCollection.updateOne(query, updateRole);
+  res.status(200).send({ message: "Updated the role", updateResult });
+}); // API endpoint -> /users/convert-patient
 
 router.patch("/update-password/:uid", async (req, res) => {
   const { uid } = req.params;
