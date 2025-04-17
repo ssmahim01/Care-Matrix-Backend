@@ -65,15 +65,17 @@ router.get("/all", async (req, res) => {
 // search doctor for home page
 router.get("/search", async (req, res) => {
   try {
+    const search = req.query.search;
+
     const result = await doctorsCollection
-      .find()
+      .find({ name: { $regex: search, $options: "i" } })
       .project({
         _id: 1,
         name: 1,
         image: 1,
         rating: 1,
         title: 1,
-        consultation_fee: 1
+        consultation_fee: 1,
       })
       .toArray();
     res.send(result);
