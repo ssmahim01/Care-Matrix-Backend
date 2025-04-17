@@ -54,7 +54,7 @@ router.delete("/delete-triage/:id", async (req, res) => {
 router.put("/update-assigned/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const { assignedDoctor, assignedRoom } = req.body;
+        const { assignedDoctor, assignedRoom, roomId } = req.body;
         const query = { _id: new ObjectId(id) };
 
 
@@ -63,6 +63,7 @@ router.put("/update-assigned/:id", async (req, res) => {
               status: "in-treatment",
               assignedDoctor: assignedDoctor,
               assignedRoom: assignedRoom,
+              roomId: roomId
             }
           };
 
@@ -73,6 +74,31 @@ router.put("/update-assigned/:id", async (req, res) => {
         }
 
         res.status(200).json({ message: "Patient updated successfully", result });
+    } catch (error) {
+        console.error("Error updating patient:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+router.put("/update-status/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+
+        const updatedDoc = {
+            $set: {
+              status: "waiting",
+              assignedDoctor: null,
+              assignedRoom: null,
+            }
+          };
+
+        const result = await triageCollection.updateOne(query, updatedDoc);
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "Patient not found" });
+        }
+
+        res.status(200).json({ message: "Treatment Successful", result });
     } catch (error) {
         console.error("Error updating patient:", error);
         res.status(500).json({ message: "Server error" });
