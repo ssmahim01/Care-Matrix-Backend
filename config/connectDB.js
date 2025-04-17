@@ -30,7 +30,10 @@ async function connectDB() {
       redeemableRewards: db.collection("redeemableRewards"),
       purchase: db.collection("purchase"),
       favorite_doctors: db.collection("favorite-doctors"),
-      contacts: db.collection("contacts")
+      contacts: db.collection("contacts"),
+      emergency: db.collection("emergency"),
+      ambulance: db.collection("ambulance"),
+      triage: db.collection("triage")
     };
 
     return collections;

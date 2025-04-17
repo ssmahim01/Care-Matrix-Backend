@@ -19,6 +19,9 @@ import favorite_doctors from "./favorite-doctors.js";
 import patientRoutes from "./patient.js";
 import adminStats from "./adminStats.js";
 import contactRoutes from "./contact.js";
+import emergency from './emergency.js'
+import ambulance from './Ambulance.js'
+import triage from "./triage.js"
 
 const router = express.Router();
 
@@ -47,5 +50,8 @@ router.use("/patient", patientRoutes); // Request API routes
 router.use("/rewards", rewardsRoute); // Rewards API route
 router.use("/adminStats", adminStats); // admin stats API route
 router.use("/contact", contactRoutes); // Contact API route
+router.use("/emergency", emergency) // Emergency API routes
+router.use("/ambulance", ambulance) // Ambulance API routes
+router.use("/triage", triage) // Ambulance API routes
 
 export default router;
