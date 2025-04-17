@@ -67,6 +67,13 @@ router.get("/search", async (req, res) => {
   try {
     const search = req.query.search;
 
+    const department = await doctorsCollection
+      .find()
+      .project({
+        title: 1,
+      })
+      .toArray();
+
     const result = await doctorsCollection
       .find({ name: { $regex: search, $options: "i" } })
       .project({
@@ -78,7 +85,11 @@ router.get("/search", async (req, res) => {
         consultation_fee: 1,
       })
       .toArray();
-    res.send(result);
+
+    res.send({
+      doctors: result,
+      departments: [...new Set(department.map((i) => i.title))],
+    });
   } catch (error) {
     res.status(500).send({ message: "Error fetching doctor", error });
   }
