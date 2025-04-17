@@ -104,4 +104,23 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+// get all payment 
+router.get("/all", async (req, res) => {
+    try {
+        const result  = await paymentsCollection.find().toArray();
+        res.send(result)
+    } catch (error) {
+        console.error('Error fetching payments:', error.message);
+    }
+})
+
+
+
+
+
+
+
+
+
 export default router;
