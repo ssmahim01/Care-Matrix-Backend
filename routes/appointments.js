@@ -6,19 +6,19 @@ const router = express.Router();
 let appointmentsCollection;
 // Initialize Database Connection and Collections
 async function mongoDBCollection() {
-    try {
-        await connectDB();
-        appointmentsCollection = collections.appointments;
-    } catch (error) {
-        console.error("Error initializing database:", error);
-    }
+  try {
+    await connectDB();
+    appointmentsCollection = collections.appointments;
+  } catch (error) {
+    console.error("Error initializing database:", error);
+  }
 }
 
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
 // Book appointments 
-router.post("/", async(req, res) => {
+router.post("/", async (req, res) => {
   const appointmentInfo = await req.body;
   const result = await collections.appointments.insertOne(appointmentInfo)
   res.send(result)
@@ -28,46 +28,62 @@ router.post("/", async(req, res) => {
 // Get appointments for receptionists
 router.get("/:email", async (req, res) => {
   const email = req.params.email;
-  // console.log(email);
-  const result = await collections.appointments.find().toArray()
-  res.send(result);
+  const sortFormat = req.query.sort;
+
+  let query = {};
+  let cursor = appointmentsCollection.find(query)
+  if (sortFormat === "asc") {
+    cursor = cursor.sort({ date: 1 }); // ascending
+  } else if (sortFormat === "desc") {
+    cursor = cursor.sort({ date: -1 }); // descending
+  }
+  const result = await cursor.toArray()
+  res.send(result)
 });
 
-router.delete("/:id", async(req, res)=>{
- const id = req.params.id;
- const query = {_id: new ObjectId(id)}
- const result = await appointmentsCollection.deleteOne(query)
- res.send(result)
+router.delete("/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result = await appointmentsCollection.deleteOne(query)
+  res.send(result)
 })
 
-router.patch("/:id", async(req, res) => {
+router.patch("/:id", async (req, res) => {
   const id = req.params.id;
-  const filter = {_id: new ObjectId(id)}
+  const filter = { _id: new ObjectId(id) }
   const appointment = await appointmentsCollection.findOne(filter)
 
   const newStatus = appointment.status === "pending" ? "Approved" : "pending"
   const updatedStatus = {
-    $set:{
+    $set: {
       status: newStatus
     }
   }
 
   const result = await appointmentsCollection.updateOne(filter, updatedStatus);
 
-  if(newStatus === "Approved"){
-    res.send({result, message: "approved"})
-  }else{
-    res.send({result, message: "pending"})
+  if (newStatus === "Approved") {
+    res.send({ result, message: "approved" })
+  } else {
+    res.send({ result, message: "pending" })
   }
 
 })
 
 
 // Get appointments for patients
-router.get('/patients/:email', async(req, res)=>{
+router.get('/patients/:email', async (req, res) => {
   const email = req.params.email;
-  const query = {email: email}
-  const result = await appointmentsCollection.find(query).toArray()
+  const sortFormat = req.query.sort;
+  let query = { email: email }
+  let cursor = appointmentsCollection.find(query);
+
+  if (sortFormat === "asc") {
+    cursor = cursor.sort({ date: 1 }); // ascending
+  } else if (sortFormat === "desc") {
+    cursor = cursor.sort({ date: -1 }); // descending
+  }
+  const result = await cursor.toArray()
   res.send(result)
 })
 
