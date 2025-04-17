@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from 'express';
 import Stripe from 'stripe';
 import { connectDB } from '../config/connectDB.js';
+import { ObjectId } from "mongodb";
 dotenv.config();
 
 const router = express.Router();
@@ -103,5 +104,42 @@ router.get('/', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch payments' });
     }
 });
+
+
+// get all payment 
+router.get("/all", async (req, res) => {
+    try {
+        const result  = await paymentsCollection.find().toArray();
+        res.send(result)
+    } catch (error) {
+        console.error('Error fetching payments:', error.message);
+    }
+})
+
+// delete payment 
+
+router.delete("/delete/:id", async (req, res) => {
+    const id = req.params.id;
+    try {
+        const result = await paymentsCollection.deleteOne({ _id: new ObjectId(id) });
+        if (result.deletedCount === 1) {
+            res.status(200).json({ message: 'Payment deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Payment not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting payment:', error.message);
+        res.status(500).json({ error: 'Failed to delete payment' });
+    }
+}
+);
+
+
+
+
+
+
+
+
 
 export default router;
