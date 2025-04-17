@@ -112,6 +112,18 @@ router.delete("/:email", async (req, res) => {
     }
 })
 
+router.delete("/remove-doctor/:id", async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    const query = { _id: new ObjectId(id) };
+    try {
+        const deleteResult = await doctorsCollection.deleteOne(query);
+        res.status(200).send({ message: "Doctor deleted successfully", deleteResult });
+    } catch (error) {
+        res.status(500).send({ message: "Error deleting doctor", error });
+    }
+})
+
 router.put("/update-availability/:id", async (req, res) => {
     const id = req.params.id;
     const query = { _id: new ObjectId(id) };
@@ -120,7 +132,11 @@ router.put("/update-availability/:id", async (req, res) => {
     try {
         const options = { upsert: true };
         const updatedData = {
-            $set: { updatedAvailability }
+            $set: { 
+                schedule: updatedAvailability?.schedule,
+                shift: updatedAvailability?.shift,
+                available_days: updatedAvailability?.available_days
+            }
         }
 
         const updateResult = await doctorsCollection.updateOne(query, updatedData, options);
