@@ -59,28 +59,38 @@ router.get("/", async (req, res) => {
                       date: "$paymentDateObj",
                     },
                   },
-                  total: { $sum: "$amountInt" },
-                  count: { $sum: 1 },
-                },
-              },
-              { $sort: { _id: 1 } },
-            ],
-            // 3️⃣ Revenue By Doctor
-            revenueByDoctor: [
-              {
-                $group: {
-                  _id: "$appointmentInfo.doctorName",
                   totalRevenue: { $sum: "$amountInt" },
                   appointments: { $sum: 1 },
                 },
               },
               {
                 $project: {
-                    doctor: "$_id",
-                    totalRevenue: 1,
-                    appointments: 1,
-                    _id: 0
-                }
+                  date: "$_id",
+                  totalRevenue: 1,
+                  appointments: 1,
+                  _id: 0,
+                },
+              },
+              { $sort: { _id: 1 } },
+            ],
+            // 3️⃣ Revenue By Doctor
+            doctorPerformance: [
+              {
+                $group: {
+                  _id: "$appointmentInfo.doctorName",
+                  totalRevenue: { $sum: "$amountInt" },
+                  appointments: { $sum: 1 },
+                  avgFee: { $avg: "$amountInt" },
+                },
+              },
+              {
+                $project: {
+                  doctor: "$_id",
+                  totalRevenue: 1,
+                  appointments: 1,
+                  avgFee:1,
+                  _id: 0,
+                },
               },
               { $sort: { total: -1 } },
             ],
@@ -94,20 +104,17 @@ router.get("/", async (req, res) => {
                   appointments: { $sum: 1 },
                 },
               },
-              { $sort: { totalSpent: -1 } },
-              { $limit: 5 },
-            ],
-            // 5️⃣ Doctor Performance Table
-            doctorPerformance: [
               {
-                $group: {
-                  _id: "$appointmentInfo.doctorName",
-                  revenue: { $sum: "$amountInt" },
-                  appointments: { $sum: 1 },
-                  avgFee: { $avg: "$amountInt" },
+                $project: {
+                  patientEmail: "$_id",
+                  patientName: 1,
+                  totalSpent: 1,
+                  appointments: 1,
+                  _id: 0,
                 },
               },
-              { $sort: { revenue: -1 } },
+              { $sort: { totalSpent: -1 } },
+              { $limit: 5 },
             ],
             // 6️⃣ Unique Patients
             uniquePatients: [
@@ -150,9 +157,8 @@ router.get("/", async (req, res) => {
       avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment),
       totalAppointments: totalAppointments,
       revenueByDay: data[0].revenueByDay,
-      revenueByDoctor: data[0].revenueByDoctor,
-      topPatients: data[0].topPatients,
       doctorPerformance: data[0].doctorPerformance,
+      topPatients: data[0].topPatients,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
