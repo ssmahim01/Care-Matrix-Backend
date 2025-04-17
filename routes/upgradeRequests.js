@@ -262,26 +262,6 @@ router.patch("/assign-status/:id", async (req, res) => {
   res.status(200).send({ message: "Assigned the user", result });
 });
 
-// Update Schedule
-router.put("/update-availability/:id", async (req, res) => {
-  const { id } = req.params;
-  const updatedAvailability = req.body;
-  console.log(updatedAvailability, id);
-
-  const updatedDoctor = {
-    $set: {
-      availableDate: updatedAvailability.availableDate,
-      shift: updatedAvailability.shift
-    }
-  };
-
-  const result = await requestCollection.updateOne(
-    { _id: id },
-    { updatedDoctor }
-  );
-  res.status(200).send({ success: true, message: "Doctor updated", result });
-});
-
 // Update staff
 router.put("/update-profile/:email", async (req, res) => {
   const { email } = req.params;
