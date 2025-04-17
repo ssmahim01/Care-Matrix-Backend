@@ -92,11 +92,22 @@ router.get("/stats/:email", async (req, res) => {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    const now = new Date(); 
+    
     const result = {
+      // appointment: await appointmentsCollection.findOne(
+      //   { email, status: "pending", date: { $gte: today.toISOString() } },
+      //   { sort: { date: 1 } }
+      // ),
       appointment: await appointmentsCollection.findOne(
-        { email, status: "pending", date: { $gte: today.toISOString() } },
-        { sort: { date: 1 } }
+        {
+          email,
+          status: "pending",
+          date: { $gte: now.toISOString() }, // only future date & time
+        },
+        {
+          sort: { date: 1 },
+        }
       ),
       bedBookings: await bedBookingCollection
         .find({ authorEmail: email })

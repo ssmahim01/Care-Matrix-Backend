@@ -59,6 +59,7 @@ router.get("/medicines", async (req, res) => {
         discountedAmount: medicine?.price?.discount?.discountedAmount,
       },
       imageURL: medicine?.imageURL,
+      availability: medicine?.availabilityStatus
     }));
 
     res.send({
