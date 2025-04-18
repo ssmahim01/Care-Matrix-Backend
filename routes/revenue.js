@@ -114,7 +114,7 @@ router.get("/", async (req, res) => {
                   _id: 0,
                 },
               },
-              { $sort: { total: -1 } },
+              { $sort: { totalRevenue: -1 } },
             ],
             topPatients: [
               {
@@ -168,7 +168,6 @@ router.get("/", async (req, res) => {
     const avgRevenuePerAppointment = (
       data[0].totalRevenue[0].total / totalAppointments
     ).toFixed(2);
-
     const avgRevenuePerDates = (
       data[0].totalRevenue[0].total / data[0].revenueByAllDates.length
     ).toFixed(2);
