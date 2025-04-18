@@ -91,11 +91,14 @@ router.get('/patients/:email', async (req, res) => {
 // Appointments for doctor 
 router.get('/doctors/:email', async (req, res) => {
   const email = req.params.email;
-  const search = req.query.search;
   const sortFormat = req?.query?.sort;
+  const search = req.query.search;
+  const category = req.query.category;
+
   console.log("Doctors email is", email);
   console.log("Sort formate ", sortFormat);
   console.log("Search with ", search);
+  console.log("Give result for ", category);
 
   const doctorsCollection = collections.doctors;
   const doctor = await doctorsCollection.findOne({ email: email })
@@ -114,6 +117,16 @@ router.get('/doctors/:email', async (req, res) => {
 }
 
   let cursor = appointmentsCollection.find(query);
+
+    // Date-based filtering
+    const today = new Date().toISOString().split('T')[0]; // e.g. "2025-04-18"
+
+    if (category === "upcoming") {
+      query.date = { $gt: today }; // upcoming = future
+    } else if (category === "past") {
+      query.date = { $lt: today }; // past = before today
+    }
+
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 })
   } else if (sortFormat === "desc") {
