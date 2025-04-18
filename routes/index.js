@@ -20,7 +20,7 @@ import patientRoutes from "./patient.js";
 import adminStats from "./adminStats.js";
 import contactRoutes from "./contact.js";
 import emergency from './emergency.js'
-import ambulance from './Ambulance.js'
+import ambulance from './ambulance.js'
 import triage from "./triage.js"
 
 const router = express.Router();
