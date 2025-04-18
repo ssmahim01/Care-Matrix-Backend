@@ -119,6 +119,7 @@ router.post("/", async (req, res) => {
     const doctorData = req.body;
     // console.log("Received doctorData:", doctorData);
 
+    // Validate required fields
     if (
       !doctorData.name ||
       !doctorData.email ||
@@ -126,27 +127,49 @@ router.post("/", async (req, res) => {
       !doctorData.shift ||
       !doctorData.services
     ) {
-      console.log("Validation failed: Missing required fields");
+      // console.log("Validation failed: Missing required fields");
       return res.status(400).send({
-        message:
-          "Missing required fields: name, email, schedule, shift, or services",
+        message: "Missing required fields: name, email, schedule, shift, or services",
       });
     }
 
-    const newDoctor = {
-      ...doctorData,
-      chamber: "CareMatrix",
-    };
+    // Check if doctor already exists
+    const query = { email: doctorData.email };
+    const existingDoctor = await doctorsCollection.findOne(query);
 
-    const insertResult = await doctorsCollection.insertOne(newDoctor);
-    res
-      .status(201)
-      .send({ message: "Doctor added successfully", insertResult });
+    if (existingDoctor) {
+      // Update existing doctor
+      const updatedData = {
+        $set: {
+          ...doctorData,
+          chamber: "CareMatrix",
+        },
+      };
+
+      const updateResult = await doctorsCollection.updateOne(query, updatedData);
+
+      if (updateResult.matchedCount === 0) {
+        return res.status(404).send({ message: "Doctor not found for update" });
+      }
+
+      if (updateResult.modifiedCount === 0) {
+        return res.status(200).send({ message: "No changes made to doctor data" });
+      }
+
+      return res.status(200).send({ message: "Doctor updated successfully", updateResult });
+    } else {
+      // Insert new doctor
+      const newDoctor = {
+        ...doctorData,
+        chamber: "CareMatrix",
+      };
+
+      const insertResult = await doctorsCollection.insertOne(newDoctor);
+      return res.status(201).send({ message: "Doctor added successfully", insertResult });
+    }
   } catch (error) {
-    console.error("Error adding the doctor:", error);
-    res
-      .status(500)
-      .send({ message: "Error adding the doctor", error: error.message });
+    console.error("Error processing doctor data:", error.message);
+    res.status(500).send({ message: "Error processing doctor data", error: error.message });
   }
 });
 
@@ -164,15 +187,15 @@ router.delete("/:email", async (req, res) => {
 });
 
 router.delete("/remove-doctor/:id", async (req, res) => {
-    const id = req.params.id;
-    console.log(id);
-    const query = { _id: new ObjectId(id) };
-    try {
-        const deleteResult = await doctorsCollection.deleteOne(query);
-        res.status(200).send({ message: "Doctor deleted successfully", deleteResult });
-    } catch (error) {
-        res.status(500).send({ message: "Error deleting doctor", error });
-    }
+  const id = req.params.id;
+  // console.log(id);
+  const query = { _id: new ObjectId(id) };
+  try {
+    const deleteResult = await doctorsCollection.deleteOne(query);
+    res.status(200).send({ message: "Doctor deleted successfully", deleteResult });
+  } catch (error) {
+    res.status(500).send({ message: "Error deleting doctor", error });
+  }
 })
 
 router.put("/update-availability/:id", async (req, res) => {
@@ -180,15 +203,15 @@ router.put("/update-availability/:id", async (req, res) => {
   const query = { _id: new ObjectId(id) };
   const updatedAvailability = req.body;
 
-    try {
-        const options = { upsert: true };
-        const updatedData = {
-            $set: { 
-                schedule: updatedAvailability?.schedule,
-                shift: updatedAvailability?.shift,
-                available_days: updatedAvailability?.available_days
-            }
-        }
+  try {
+    const options = { upsert: true };
+    const updatedData = {
+      $set: {
+        schedule: updatedAvailability?.schedule,
+        shift: updatedAvailability?.shift,
+        available_days: updatedAvailability?.available_days
+      }
+    }
 
     const updateResult = await doctorsCollection.updateOne(
       query,
