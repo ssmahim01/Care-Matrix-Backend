@@ -76,7 +76,7 @@ router.get('/patients/:email', async (req, res) => {
   const email = req.params.email;
   const sortFormat = req.query.sort;
   let query = { email: email }
-  console.log(query);
+  
   let cursor = appointmentsCollection.find(query);
 
   if (sortFormat === "asc") {
