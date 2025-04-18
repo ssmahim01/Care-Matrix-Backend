@@ -101,6 +101,7 @@ router.get("/", async (req, res) => {
                   totalRevenue: { $sum: "$amountInt" },
                   appointments: { $sum: 1 },
                   avgFee: { $avg: "$amountInt" },
+                  doctorTitle: { $first: "$appointmentInfo.doctorTitle" },
                 },
               },
               {
@@ -109,6 +110,7 @@ router.get("/", async (req, res) => {
                   totalRevenue: 1,
                   appointments: 1,
                   avgFee: 1,
+                  doctorTitle: 1,
                   _id: 0,
                 },
               },
