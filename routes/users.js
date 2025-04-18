@@ -175,6 +175,38 @@ router.post("/verify-password", async (req, res) => {
   }
 }); // Api endpoint -> /users/verify-password
 
+
+// update user profile route
+router.put("/update-profile/:email", async (req, res) => {
+  try {
+    const email = req.params.email
+    const { data, profileImage } = req.body
+
+    if (!email || !data) {
+      return res.status(400).json({ message: "Missing email or data" })
+    }
+
+    const updateData = {
+      ...data,
+    }
+    if (profileImage) {
+      updateData.profileImage = profileImage 
+    }
+    const result = await usersCollection.updateOne(
+      { email },
+      { $set: updateData }
+    )
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    res.status(200).json({ message: "Profile updated successfully" })
+  } catch (error) {
+    console.error("Error updating profile:", error)
+    res.status(500).json({ message: "Internal server error" })
+  }
+}) // API endpoint --> /users/update-profile/{value-->email}
+
 // Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
   const email = req.params.email;
@@ -207,17 +239,30 @@ router.patch("/update-photo/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-photo/:email
 
 // Update the role
-router.patch("/convert-role/:email", async (req, res) => {
+router.patch("/convert-role/:email", async  (req, res) => {
   const email = req.params.email;
   const query = { email: email };
 
   const updateRole = {
-    $set: { role: "Doctor" },
+    $set: { role: "doctor" },
+  };
+
+  const updateResult = await usersCollection.updateOne(query, updateRole);
+  res.status(200).send({  message: "Updated the role", updateResult  });
+}); // API endpoint -> /users/convert-role
+
+// Convert to patient
+router.patch("/convert-patient/:email", async (req, res) => {
+  const email = req.params.email;
+  const query = { email: email };
+
+  const updateRole = {
+    $set: { role: "patient" },
   };
 
   const updateResult = await usersCollection.updateOne(query, updateRole);
   res.status(200).send({ message: "Updated the role", updateResult });
-}); // API endpoint -> /users/convert-role
+}); // API endpoint -> /users/convert-patient
 
 router.patch("/update-password/:uid", async (req, res) => {
   const { uid } = req.params;
@@ -261,7 +306,7 @@ router.get("/", async (req, res) => {
 
 // get users by search params by their name
 router.get("/search-users", async (req, res) => {
-  const search = req.query.name?.trim();
+  const search = req.query.name;
   if (!search) {
     return res.status(400).send({ message: "Missing 'name' query parameter." });
   }
