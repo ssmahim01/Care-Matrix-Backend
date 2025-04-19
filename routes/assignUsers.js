@@ -88,8 +88,10 @@ router.post("/assign-user", async (req, res) => {
       photo: user?.photo,
       phoneNumber: user?.phoneNumber,
       uid: firebaseResult?.uid,
-      createdAt: firebaseResult?.metadata?.creationTime,
-      lastLoginAt: firebaseResult?.metadata?.lastSignInTime,
+      createdAt: new Date(firebaseResult?.metadata?.creationTime).toISOString(),
+      lastLoginAt: new Date(
+        firebaseResult?.metadata?.lastSignInTime
+      ).toISOString(),
       createdBy: "assigned",
     };
 
@@ -111,6 +113,9 @@ router.get("/users", async (req, res) => {
     const result = await usersCollection
       .find({
         createdBy: "assigned",
+      })
+      .sort({
+        createdAt: -1,
       })
       .project({
         _id: 1,
