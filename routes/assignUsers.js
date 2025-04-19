@@ -106,4 +106,28 @@ router.post("/assign-user", async (req, res) => {
   }
 });
 
+router.get("/users", async (req, res) => {
+  try {
+    const result = await usersCollection
+      .find({
+        createdBy: "assigned",
+      })
+      .project({
+        _id: 1,
+        role: 1,
+        email: 1,
+        name: 1,
+        photo: 1,
+        phoneNumber: 1,
+        uid: 1,
+        createdAt: 1,
+        lastLoginAt: 1,
+      })
+      .toArray();
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 export default router;
