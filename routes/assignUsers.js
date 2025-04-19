@@ -55,7 +55,7 @@ router.post("/assign-user", async (req, res) => {
     if (isExist) {
       return res.status(400).send({
         message: "A user with this email already exists.",
-        user: isExist, 
+        user: isExist,
       });
     }
 
@@ -65,12 +65,19 @@ router.post("/assign-user", async (req, res) => {
     }
 
     // Post user in firebase
-    const result = await admin.auth().createUser({
-      email: user.email,
-      password: password,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-    });
+    let firebaseResult;
+    try {
+      firebaseResult = await admin.auth().createUser({
+        email: user.email,
+        password: password,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .send({ message: `Firebase Error: ${error.message}` });
+    }
 
     // Get user info from firebase
     const userInfo = {
@@ -80,18 +87,18 @@ router.post("/assign-user", async (req, res) => {
       password: hashedPassword,
       photo: user?.photo,
       phoneNumber: user?.phoneNumber,
-      uid: result?.uid,
-      createdAt: result?.metadata?.creationTime,
-      lastLoginAt: result?.metadata?.lastSignInTime,
-      providerId: "assigned",
+      uid: firebaseResult?.uid,
+      createdAt: firebaseResult?.metadata?.creationTime,
+      lastLoginAt: firebaseResult?.metadata?.lastSignInTime,
+      createdBy: "assigned",
     };
 
     // Post user in mongoDB
-    const postUser = await usersCollection.insertOne(userInfo);
+    const postUserResult = await usersCollection.insertOne(userInfo);
 
     res.send({
-      firebase: result,
-      mongoDB: postUser,
+      firebase: firebaseResult,
+      mongoDB: postUserResult,
       message: "User Created Successfully",
     });
   } catch (error) {
