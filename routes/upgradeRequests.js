@@ -54,6 +54,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/search", async (req, res)=> {
+  const search = req.query.name
+  try {
+    if (!search) {
+      const allUsers = await requestCollection.find().toArray();
+      return res.send(allUsers);
+    }
+
+    const result = await requestCollection
+      .find({
+        userName: { $regex: search, $options: "i" },
+      })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).send({ message: "Failed to search users.", error });
+  }
+})
+
 // Insert the request data
 router.post("/", async (req, res) => {
   const requestData = req.body;
