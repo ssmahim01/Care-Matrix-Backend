@@ -174,8 +174,8 @@ router.get("/", async (req, res) => {
 
     res.json({
       totalRevenue: data[0].totalRevenue[0].total,
-      uniquePatients: data[0].uniquePatients[0].count,
-      appointmentsToday: data[0].appointmentsToday[0].count,
+      uniquePatients: data[0].uniquePatients[0]?.count | 0,
+      appointmentsToday: data[0].appointmentsToday[0]?.count | 0,
       avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment),
       avgRevenuePerDates: parseInt(avgRevenuePerDates),
       totalAppointments: totalAppointments,
