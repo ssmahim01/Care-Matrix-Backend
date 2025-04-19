@@ -286,12 +286,12 @@ router.patch("/assign-status/:id", async (req, res) => {
 // Update staff
 router.put("/update-profile/:email", async (req, res) => {
   const { email } = req.params;
-  const { data, profileImage } = req.body;
+  const { phoneNumber, userName , profileImage, requestedRole } = req.body;
   const result = await requestCollection.updateOne(
     { userEmail: email },
-    { $set: { ...data, userPhoto: profileImage } }
+    { $set: { userPhoto: profileImage, contactNumber: phoneNumber, userName: userName, requestedRole } }
   );
-  res.send({ success: true, message: "Staff updated" });
+  res.send({ success: true, message: "Staff updated", data: result });
 });
 
 export default router;
