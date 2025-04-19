@@ -111,18 +111,28 @@ router.post("/assign-user", async (req, res) => {
 router.get("/users", async (req, res) => {
   try {
     let query = {};
+    const role = req.query.role;
+    const sort = req.query.sort;
     const search = req.query.search;
 
+    if (role) query.role = role;
     if (search) query.name = { $regex: search, $options: "i" };
+
+    let sortOption = { createdAt: -1 };
+
+    if (sort) {
+      const [field, order] = sort.split("-");
+      sortOption = {
+        [field]: order === "asc" ? 1 : -1,
+      };
+    }
 
     const result = await usersCollection
       .find({
         createdBy: "assigned",
         ...query,
       })
-      .sort({
-        createdAt: -1,
-      })
+      .sort(sortOption)
       .project({
         _id: 1,
         role: 1,
