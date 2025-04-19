@@ -173,16 +173,16 @@ router.get("/", async (req, res) => {
     ).toFixed(2);
 
     res.json({
-      totalRevenue: data[0].totalRevenue[0].total,
-      uniquePatients: data[0].uniquePatients[0]?.count | 0,
-      appointmentsToday: data[0].appointmentsToday[0]?.count | 0,
-      avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment),
-      avgRevenuePerDates: parseInt(avgRevenuePerDates),
-      totalAppointments: totalAppointments,
-      revenueByDay: data[0].revenueByDay,
-      revenueByAllDates: data[0].revenueByAllDates,
-      doctorPerformance: data[0].doctorPerformance,
-      topPatients: data[0].topPatients,
+      totalRevenue: data[0].totalRevenue[0]?.total || 0,
+      uniquePatients: data[0].uniquePatients[0]?.count || 0,
+      appointmentsToday: data[0].appointmentsToday[0]?.count || 0,
+      avgRevenuePerAppointment: parseInt(avgRevenuePerAppointment) || 0,
+      avgRevenuePerDates: parseInt(avgRevenuePerDates) || 0,
+      totalAppointments: totalAppointments || 0,
+      revenueByDay: data[0].revenueByDay || [],
+      revenueByAllDates: data[0].revenueByAllDates || [],
+      doctorPerformance: data[0].doctorPerformance || [],
+      topPatients: data[0].topPatients || [],
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
