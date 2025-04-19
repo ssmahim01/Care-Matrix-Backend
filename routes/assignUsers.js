@@ -110,9 +110,15 @@ router.post("/assign-user", async (req, res) => {
 
 router.get("/users", async (req, res) => {
   try {
+    let query = {};
+    const search = req.query.search;
+
+    if (search) query.name = { $regex: search, $options: "i" };
+
     const result = await usersCollection
       .find({
         createdBy: "assigned",
+        ...query,
       })
       .sort({
         createdAt: -1,
