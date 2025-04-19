@@ -70,8 +70,8 @@ router.post("/assign-user", async (req, res) => {
       firebaseResult = await admin.auth().createUser({
         email: user.email,
         password: password,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
+        displayName: user.name,
+        photoURL: user.photo,
       });
     } catch (error) {
       return res
