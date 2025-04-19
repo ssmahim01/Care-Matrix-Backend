@@ -18,12 +18,12 @@ async function initCollections() {
     purchaseCollection = collections.purchase;
     usersCollection = collections.users;
   } catch (error) {
-    console.error("Failed to initialize collections:", error);
+    // console.error("Failed to initialize collections:", error);
   }
 }
 await initCollections();
 
-// Existing route for stats (unchanged)
+// Route for stats
 router.get("/", async (req, res) => {
   try {
     const [revenuePerDay, appointmentsPerDate, bedBookingsPerAdmissionDate] =
@@ -82,7 +82,7 @@ router.get("/", async (req, res) => {
           .toArray(),
       ]);
 
-    res.status(200).json({
+    res.status(200).send({
       status: "success",
       data: {
         revenuePerDay,
@@ -91,15 +91,57 @@ router.get("/", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching admin stats:", error);
-    res.status(500).json({
+    // console.error("Error fetching admin stats:", error);
+    res.status(500).send({
       status: "error",
       message: "Failed to fetch statistics",
     });
   }
 });
 
-// New route for totals (unchanged)
+// Route for doctors and their patient counts
+router.get("/doctors-patients", async (req, res) => {
+  try {
+    const doctorsPatients = await appointmentsCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$doctorId",
+            doctorName: { $first: "$doctorName" },
+            patients: { $sum: 1 },
+          },
+        },
+        // Project to rename fields
+        {
+          $project: {
+            doctorName: 1,
+            patients: 1,
+            _id: 0,
+          },
+        },
+        // Sort by number of patients descending
+        { $sort: { patients: -1 } },
+        // Limit to top 5 doctors
+        { $limit: 5 },
+      ])
+      .toArray();
+
+    res.status(200).send({
+      status: "success",
+      data: {
+        doctorsPatients,
+      },
+    });
+  } catch (error) {
+    // console.error("Error fetching doctors and patients:", error);
+    res.status(500).send({
+      status: "error",
+      message: "Failed to fetch doctors and patients",
+    });
+  }
+});
+
+// Route for totals
 router.get("/totals", async (req, res) => {
   try {
     const userCounts = await usersCollection
@@ -123,7 +165,7 @@ router.get("/totals", async (req, res) => {
     const totalPatients = userCounts.find((item) => item.role === "patient")?.count || 0;
     const totalDoctors = userCounts.find((item) => item.role === "doctor")?.count || 0;
 
-    res.status(200).json({
+    res.status(200).send({
       status: "success",
       data: {
         totalPatients,
@@ -131,8 +173,8 @@ router.get("/totals", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching totals:", error);
-    res.status(500).json({
+    // console.error("Error fetching totals:", error);
+    res.status(500).send({
       status: "error",
       message: "Failed to fetch totals",
     });
@@ -216,15 +258,15 @@ router.get("/recent-activities", async (req, res) => {
         : `🟢 0 bed bookings accepted today`,
     ].filter((activity) => activity !== null);
 
-    res.status(200).json({
+    res.status(200).send({
       status: "success",
       data: {
         recentActivities,
       },
     });
   } catch (error) {
-    console.error("Error fetching recent activities:", error);
-    res.status(500).json({
+    // console.error("Error fetching recent activities:", error);
+    res.status(500).send({
       status: "error",
       message: "Failed to fetch recent activities",
     });
