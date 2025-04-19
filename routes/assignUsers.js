@@ -151,4 +151,32 @@ router.get("/users", async (req, res) => {
   }
 });
 
+router.delete("/delete-user/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    // Get User
+    const user = await usersCollection.findOne({ email });
+
+    // If !user show error message
+    if (!user) {
+      return res.status(404).send({ message: "User not found in database." });
+    }
+
+    // Get User UID
+    const uid = user?.uid;
+    // Delete User From Firebase
+    await admin.auth().deleteUser(uid);
+    // Delete User From MongoDB
+    const result = await usersCollection.deleteOne({ email });
+
+    res.send({
+      result,
+      message: "User Deleted From Firebase & MongoDB",
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 export default router;
