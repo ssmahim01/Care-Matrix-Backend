@@ -48,11 +48,15 @@ router.post("/assign-user", async (req, res) => {
     const user = req.body;
     const password = user?.password;
 
-    // check user email exists or not
+    // Check if user email already exists
     const query = { email: user.email };
     const isExist = await usersCollection.findOne(query);
+
     if (isExist) {
-      return res.send(isExist);
+      return res.status(400).send({
+        message: "A user with this email already exists.",
+        user: isExist, 
+      });
     }
 
     let hashedPassword = null;
