@@ -136,7 +136,7 @@ router.post("/assign-doctor", async (req, res) => {
 
     if (isExist) {
       return res.status(400).send({
-        message: "A user with this email already exists.",
+        message: "A doctor with this email already exists.",
         user: isExist,
       });
     }
@@ -153,7 +153,7 @@ router.post("/assign-doctor", async (req, res) => {
         email: user.email,
         password: password,
         displayName: user.name,
-        photoURL: user.photo,
+        photoURL: user.image,
       });
     } catch (error) {
       return res
@@ -161,13 +161,13 @@ router.post("/assign-doctor", async (req, res) => {
         .send({ message: `Firebase Error: ${error.message}` });
     }
 
-    // Get user info from firebase
+    // doctorInfo
     const userInfo = {
       role: user?.role,
       email: user?.email,
       name: user?.name,
       password: hashedPassword,
-      photo: user?.photo,
+      photo: user?.image,
       phoneNumber: user?.phoneNumber,
       uid: firebaseResult?.uid,
       createdAt: new Date(firebaseResult?.metadata?.creationTime).toISOString(),
@@ -177,12 +177,37 @@ router.post("/assign-doctor", async (req, res) => {
       createdBy: "assigned",
     };
 
-    // Post user in mongoDB
+    const doctorInfo = {
+      name: user?.name,
+      title: user?.title,
+      email: user?.email,
+      image: user?.image,
+
+      experience: user?.experience,
+      chamber: user?.chamber,
+      services: user?.services,
+      bio: user?.bio,
+
+      available_days: user?.available_days,
+      schedule: user?.schedule,
+      shift: user?.shift,
+      consultation_fee: user?.consultation_fee,
+
+      rating: user?.rating,
+      vote: user?.vote,
+      number_of_feedback: user?.number_of_feedback,
+      treated_patients: user?.treated_patients,
+    };
+
+    // Post doctor in mongoDB
     const postUserResult = await usersCollection.insertOne(userInfo);
+    // Post doctor in doctorsCollection
+    const postDoctorResult = await doctorsCollection.insertOne(doctorInfo);
 
     res.send({
       firebase: firebaseResult,
-      mongoDB: postUserResult,
+      postUserResult: postUserResult,
+      postDoctorResult: postDoctorResult,
       message: "User Created Successfully",
     });
   } catch (error) {
