@@ -259,6 +259,19 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// Get Doctor By Email
+router.get("/doctor/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+    const result = await doctorsCollection.findOne({
+      email,
+    });
+    res.send(result || {});
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 // Delete User
 router.delete("/delete-user/:email", async (req, res) => {
   try {
