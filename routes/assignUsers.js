@@ -223,6 +223,10 @@ router.get("/users", async (req, res) => {
     const sort = req.query.sort;
     const search = req.query.search;
 
+    const limit = 6;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
     if (role) query.role = role;
     if (search) query.name = { $regex: search, $options: "i" };
 
@@ -235,6 +239,11 @@ router.get("/users", async (req, res) => {
       };
     }
 
+    const total = await usersCollection.countDocuments({
+      createdBy: "assigned",
+      ...query,
+    });
+    
     const result = await usersCollection
       .find({
         createdBy: "assigned",
@@ -252,8 +261,16 @@ router.get("/users", async (req, res) => {
         createdAt: 1,
         lastLoginAt: 1,
       })
+      .skip(skip)
+      .limit(limit)
       .toArray();
-    res.send(result);
+
+    res.send({
+      users: result,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      totalItems: total,
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
