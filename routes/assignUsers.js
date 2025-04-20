@@ -223,7 +223,7 @@ router.get("/users", async (req, res) => {
     const sort = req.query.sort;
     const search = req.query.search;
 
-    const limit = 6;
+    const limit = 7;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
@@ -243,7 +243,7 @@ router.get("/users", async (req, res) => {
       createdBy: "assigned",
       ...query,
     });
-    
+
     const result = await usersCollection
       .find({
         createdBy: "assigned",
