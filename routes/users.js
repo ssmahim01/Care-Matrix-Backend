@@ -221,6 +221,19 @@ router.patch("/update-name/:email", async (req, res) => {
   res.send({ data: result, message: "Username updated successfully" });
 }); // Api endpoint -> /users/update-name/:email
 
+router.patch("/update-user-photo/:email", async (req, res) => {
+  const email = req.params.email;
+  const { photo } = req.body;
+  const filter = { email };
+  const updatedUserInfo = {
+    $set: {
+      photo: photo,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updatedUserInfo);
+  res.send({ data: result, message: "User Photo updated successfully" });
+}); // Api endpoint -> /users/update-name/:email
+
 // Update user photo --->
 router.patch("/update-photo/:email", async (req, res) => {
   const email = req.params.email;
