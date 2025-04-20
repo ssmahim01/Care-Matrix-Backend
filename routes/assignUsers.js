@@ -14,6 +14,8 @@ const hashPassword = async (password) => {
 };
 
 let usersCollection;
+let doctorsCollection;
+
 async function initCollection() {
   try {
     const dbCollections = await connectDB();
@@ -26,6 +28,19 @@ async function initCollection() {
   }
 }
 initCollection();
+
+async function initDoctorCollection() {
+  try {
+    const dbCollections = await connectDB();
+    if (!dbCollections?.doctors) {
+      throw new Error("doctors collection not initialized.");
+    }
+    doctorsCollection = dbCollections.doctors;
+  } catch (error) {
+    console.error("Failed to initialize doctors collection:", error.message);
+  }
+}
+initDoctorCollection();
 
 // serviceAccount
 const serviceAccount = {
@@ -43,6 +58,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+// Assign-User
 router.post("/assign-user", async (req, res) => {
   try {
     const user = req.body;
@@ -108,6 +124,73 @@ router.post("/assign-user", async (req, res) => {
   }
 });
 
+// Assign-Doctor
+router.post("/assign-doctor", async (req, res) => {
+  try {
+    const user = req.body;
+    const password = user?.password;
+
+    // Check if user email already exists
+    const query = { email: user.email };
+    const isExist = await usersCollection.findOne(query);
+
+    if (isExist) {
+      return res.status(400).send({
+        message: "A user with this email already exists.",
+        user: isExist,
+      });
+    }
+
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await hashPassword(password);
+    }
+
+    // Post user in firebase
+    let firebaseResult;
+    try {
+      firebaseResult = await admin.auth().createUser({
+        email: user.email,
+        password: password,
+        displayName: user.name,
+        photoURL: user.photo,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .send({ message: `Firebase Error: ${error.message}` });
+    }
+
+    // Get user info from firebase
+    const userInfo = {
+      role: user?.role,
+      email: user?.email,
+      name: user?.name,
+      password: hashedPassword,
+      photo: user?.photo,
+      phoneNumber: user?.phoneNumber,
+      uid: firebaseResult?.uid,
+      createdAt: new Date(firebaseResult?.metadata?.creationTime).toISOString(),
+      lastLoginAt: new Date(
+        firebaseResult?.metadata?.lastSignInTime
+      ).toISOString(),
+      createdBy: "assigned",
+    };
+
+    // Post user in mongoDB
+    const postUserResult = await usersCollection.insertOne(userInfo);
+
+    res.send({
+      firebase: firebaseResult,
+      mongoDB: postUserResult,
+      message: "User Created Successfully",
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+// Get Assigned-Users
 router.get("/users", async (req, res) => {
   try {
     let query = {};
@@ -151,6 +234,7 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// Delete User
 router.delete("/delete-user/:email", async (req, res) => {
   try {
     const email = req.params.email;
