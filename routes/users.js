@@ -122,6 +122,26 @@ router.get("/role/:email", async (req, res) => {
   res.send({ role: result?.role });
 }); // Api endpoint -> /users/role/:email
 
+// Fetch logged-in user's details
+router.get("/me/:uid", async (req, res) => {
+    const userId = req.params.uid;
+
+    // Fetch user details from the users collection
+    const user = await usersCollection.findOne({ uid: userId });
+
+    if (!user) {
+      return res.status(404).send({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    res.status(200).send({
+      status: "success",
+      data: user,
+    });
+}); // Api endpoint -> /users/me/:uid
+
 // Get single user
 router.get("/individual/:uid", async (req, res) => {
   const id = req.params.uid;
