@@ -6,6 +6,8 @@ const router = express.Router();
 let appointmentsCollection;
 let bedsCollection;
 let bed_bookingCollection;
+let purchaseCollection;
+let usersCollection;
 
 async function initCollections() {
   try {
@@ -13,38 +15,17 @@ async function initCollections() {
     appointmentsCollection = collections.appointments;
     bedsCollection = collections.beds;
     bed_bookingCollection = collections.bed_booking;
+    purchaseCollection = collections.purchase;
+    usersCollection = collections.users;
   } catch (error) {
-    console.error("Failed to initialize collections:", error);
+    // console.error("Failed to initialize collections:", error);
   }
 }
 await initCollections();
-// Initialize purchaseCollection
-let purchaseCollection;
-async function initCollection() {
-  try {
-    const collections = await connectDB();
-    purchaseCollection = collections.purchase;
-  } catch (error) {
-    console.error("Failed to initialize purchase collection:", error);
-  }
-}
-await initCollection();
 
-// Initialize purchaseCollection
-let usersCollection;
-async function initUsersCollection() {
-  try {
-    const collections = await connectDB();
-    usersCollection = collections.users;
-  } catch (error) {
-    console.error("Failed to initialize users collection:", error);
-  }
-}
-await initUsersCollection();
-
+// Route for stats
 router.get("/", async (req, res) => {
   try {
-    // Execute all aggregations concurrently
     const [revenuePerDay, appointmentsPerDate, bedBookingsPerAdmissionDate] =
       await Promise.all([
         purchaseCollection
@@ -101,8 +82,7 @@ router.get("/", async (req, res) => {
           .toArray(),
       ]);
 
-    // Return combined results
-    res.status(200).json({
+    res.status(200).send({
       status: "success",
       data: {
         revenuePerDay,
@@ -111,10 +91,184 @@ router.get("/", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching admin stats:", error);
-    res.status(500).json({
+    // console.error("Error fetching admin stats:", error);
+    res.status(500).send({
       status: "error",
       message: "Failed to fetch statistics",
+    });
+  }
+});
+
+// Route for doctors and their patient counts
+router.get("/doctors-patients", async (req, res) => {
+  try {
+    const doctorsPatients = await appointmentsCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$doctorId",
+            doctorName: { $first: "$doctorName" },
+            patients: { $sum: 1 },
+          },
+        },
+        // Project to rename fields
+        {
+          $project: {
+            doctorName: 1,
+            patients: 1,
+            _id: 0,
+          },
+        },
+        // Sort by number of patients descending
+        { $sort: { patients: -1 } },
+        // Limit to top 5 doctors
+        { $limit: 5 },
+      ])
+      .toArray();
+
+    res.status(200).send({
+      status: "success",
+      data: {
+        doctorsPatients,
+      },
+    });
+  } catch (error) {
+    // console.error("Error fetching doctors and patients:", error);
+    res.status(500).send({
+      status: "error",
+      message: "Failed to fetch doctors and patients",
+    });
+  }
+});
+
+// Route for totals
+router.get("/totals", async (req, res) => {
+  try {
+    const userCounts = await usersCollection
+      .aggregate([
+        {
+          $group: {
+            _id: "$role",
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            role: "$_id",
+            count: 1,
+          },
+        },
+      ])
+      .toArray();
+
+    const totalPatients = userCounts.find((item) => item.role === "patient")?.count || 0;
+    const totalDoctors = userCounts.find((item) => item.role === "doctor")?.count || 0;
+
+    res.status(200).send({
+      status: "success",
+      data: {
+        totalPatients,
+        totalDoctors,
+      },
+    });
+  } catch (error) {
+    // console.error("Error fetching totals:", error);
+    res.status(500).send({
+      status: "error",
+      message: "Failed to fetch totals",
+    });
+  }
+});
+
+// Updated route for recent activities
+router.get("/recent-activities", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+
+    const [
+      recentDoctor,
+      appointmentsToday,
+      recentPendingAppointment,
+      bedBookingsAcceptedToday,
+    ] = await Promise.all([
+      // Recently added doctor
+      usersCollection
+        .find({ role: "doctor" })
+        .sort({ createdAt: -1 })
+        .limit(1)
+        .toArray(),
+
+      // Appointments registered today
+      appointmentsCollection
+        .aggregate([
+          {
+            $match: {
+              date: today,
+              status: "Approved",
+            },
+          },
+          {
+            $count: "total",
+          },
+        ])
+        .toArray(),
+
+      // Recently canceled appointment
+      appointmentsCollection
+        .find({ status: "pending" })
+        .sort({ updatedAt: -1 })
+        .limit(1)
+        .toArray(),
+
+      // Bed bookings accepted today
+      bed_bookingCollection
+        .aggregate([
+          {
+            $match: {
+              admissionDate: today,
+              status: "accepted",
+            },
+          },
+          {
+            $count: "total",
+          },
+        ])
+        .toArray(),
+    ]);
+
+    // Process the canceled appointment ID
+    const modifiedPendingId =
+      recentPendingAppointment.length > 0
+        ? `p${String(recentPendingAppointment[0]._id).slice(0, 4)}`
+        : null;
+
+    const recentActivities = [
+      recentDoctor.length > 0
+        ? `🟢 New doctor ${recentDoctor[0].name} joined the hospital`
+        : null,
+      appointmentsToday.length > 0
+        ? `🟢 ${appointmentsToday[0].total} new appointment registrations today`
+        : `🟢 0 new appointment registrations today`,
+      recentPendingAppointment.length > 0
+        ? `🟡 Appointment #${modifiedPendingId} is pending`
+        : null,
+      bedBookingsAcceptedToday.length > 0
+        ? `🟢 ${bedBookingsAcceptedToday[0].total} bed bookings accepted today`
+        : `🟢 0 bed bookings accepted today`,
+    ].filter((activity) => activity !== null);
+
+    res.status(200).send({
+      status: "success",
+      data: {
+        recentActivities,
+      },
+    });
+  } catch (error) {
+    // console.error("Error fetching recent activities:", error);
+    res.status(500).send({
+      status: "error",
+      message: "Failed to fetch recent activities",
     });
   }
 });

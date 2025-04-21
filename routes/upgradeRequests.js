@@ -54,6 +54,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/search", async (req, res)=> {
+  const search = req.query.name
+  try {
+    if (!search) {
+      const allUsers = await requestCollection.find().toArray();
+      return res.send(allUsers);
+    }
+
+    const result = await requestCollection
+      .find({
+        userName: { $regex: search, $options: "i" },
+      })
+      .toArray();
+
+    res.send(result);
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).send({ message: "Failed to search users.", error });
+  }
+})
+
 // Insert the request data
 router.post("/", async (req, res) => {
   const requestData = req.body;
@@ -265,12 +286,12 @@ router.patch("/assign-status/:id", async (req, res) => {
 // Update staff
 router.put("/update-profile/:email", async (req, res) => {
   const { email } = req.params;
-  const { data, profileImage } = req.body;
+  const { phoneNumber, userName , profileImage, requestedRole } = req.body;
   const result = await requestCollection.updateOne(
     { userEmail: email },
-    { $set: { ...data, userPhoto: profileImage } }
+    { $set: { userPhoto: profileImage, contactNumber: phoneNumber, userName: userName, requestedRole } }
   );
-  res.send({ success: true, message: "Staff updated" });
+  res.send({ success: true, message: "Staff updated", data: result });
 });
 
 export default router;
