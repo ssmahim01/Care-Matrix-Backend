@@ -25,6 +25,7 @@ import emergency from './emergency.js'
 import ambulance from './ambulance.js'
 import triage from "./triage.js"
 import prescriptions from './prescription.js'
+import chatMessages from './chats.js'
 
 const router = express.Router();
 
@@ -59,5 +60,6 @@ router.use("/triage", triage); // Ambulance API routes
 router.use("/revenue-insights", revenueRoutes); // Revenue Insights API routes
 router.use("/prescriptions", prescriptions); // prescriptions Insights API routes
 router.use("/firebase", assignUser); // Firebase User API routes
+router.use("/chat", chatMessages); // Chat Messages API Routes
 
 export default router;
