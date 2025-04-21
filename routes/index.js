@@ -24,6 +24,7 @@ import assignUser from './assignUsers.js';
 import emergency from './emergency.js'
 import ambulance from './ambulance.js'
 import triage from "./triage.js"
+import prescriptions from './prescription.js'
 
 const router = express.Router();
 
@@ -56,6 +57,7 @@ router.use("/emergency", emergency); // Emergency API routes
 router.use("/ambulance", ambulance); // Ambulance API routes
 router.use("/triage", triage); // Ambulance API routes
 router.use("/revenue-insights", revenueRoutes); // Revenue Insights API routes
+router.use("/prescriptions", prescriptions); // prescriptions Insights API routes
 router.use("/firebase", assignUser); // Firebase User API routes
 
 export default router;
