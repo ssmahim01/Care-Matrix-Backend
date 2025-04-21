@@ -25,7 +25,7 @@ import emergency from './emergency.js'
 import ambulance from './ambulance.js'
 import triage from "./triage.js"
 import prescriptions from './prescription.js'
-import chatMessages from './chats.js'
+import chatMessages from './chats.js';
 
 const router = express.Router();
 
