@@ -55,8 +55,8 @@ router.get("/:email", async (req, res) => {
   try {
     const doctor = await doctorCollection.findOne({ email: email });
     if (!doctor) return res.status(404).json({ message: "Doctor Not Found!" });
-    const doctorIdStr = doctor._id.toString();
 
+    const doctorIdStr = doctor._id.toString();
     const doctorInfo = {
       _id: doctor?._id,
       name: doctor?.name,
@@ -102,13 +102,6 @@ router.get("/:email", async (req, res) => {
       ])
       .toArray();
 
-    // total revenue of doctor
-    const totalRevenue = revenueAgg.reduce(
-      (sum, item) => sum + item?.totalRevenue,
-      0
-    );
-
-    // Appointments
     const allAppointments = await appointmentsCollection
       .find({
         doctorId: doctorIdStr,
@@ -124,7 +117,6 @@ router.get("/:email", async (req, res) => {
       .sort({ date: -1 })
       .toArray();
 
-    //Prescriptions
     const allPrescriptions = await prescriptionsCollection
       .find({
         "patientInfo.doctorId": doctorIdStr,
@@ -144,7 +136,14 @@ router.get("/:email", async (req, res) => {
       .sort({ date: -1 })
       .toArray();
 
-    // Build response
+    // total & avg revenue of doctor
+    const totalRevenue = revenueAgg.reduce(
+      (sum, item) => sum + item?.totalRevenue,
+      0
+    );
+    const avgRevenuePerAppointment =
+      totalRevenue / (allAppointments.length || 1);
+
     const response = {
       doctor: doctorInfo,
       stats: {
@@ -154,10 +153,22 @@ router.get("/:email", async (req, res) => {
         totalTreatedPatients: doctor.treated_patients || 0,
         averageRating: doctor.rating || 0,
         totalVote: doctor.vote || 0,
+        avgRevenuePerAppointment: parseFloat(
+          avgRevenuePerAppointment.toFixed(2)
+        ),
+        uniquePatientsTreated:
+          new Set(allAppointments.map((appointment) => appointment.patientId))
+            .size || 0,
       },
-      appointments: allAppointments,
-      prescriptions: allPrescriptions,
-      revenueByDates: revenueAgg,
+      appointments: allAppointments || [],
+      prescriptions: allPrescriptions || [],
+      revenueByDates: revenueAgg || [],
+      appointmentsPerDay: allAppointments.reduce((acc, appointment) => {
+        const date = new Date(appointment.date).toISOString().split("T")[0];
+        if (!acc[date]) acc[date] = 0;
+        acc[date]++;
+        return acc;
+      }, {}) || {},
     };
 
     res.status(200).json(response);
