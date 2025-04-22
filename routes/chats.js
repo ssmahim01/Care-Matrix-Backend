@@ -146,9 +146,9 @@ router.get("/messages/chats/:userEmail", async (req, res) => {
   });
 });
 
-router.get("/doctors", async (req, res) => {
+router.get("/professionals", async (req, res) => {
   const user = await getUsersCollection();
-  const doctors = await user.find({ role: "doctor" }).toArray();
+  const doctors = await user.find({role: {$in: ["doctor", "pharmacist"]}}).toArray();
   res.send({
     status: "success",
     data: doctors
