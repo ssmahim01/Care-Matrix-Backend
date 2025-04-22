@@ -123,24 +123,30 @@ router.get("/role/:email", async (req, res) => {
 }); // Api endpoint -> /users/role/:email
 
 // Fetch logged-in user's details
-router.get("/me/:uid", async (req, res) => {
-    const userId = req.params.uid;
+router.get("/me", async (req, res) => {
+  const { email } = req.query;
 
-    // Fetch user details from the users collection
-    const user = await usersCollection.findOne({ uid: userId });
-
-    if (!user) {
-      return res.status(404).send({
-        status: "error",
-        message: "User not found",
-      });
-    }
-
-    res.status(200).send({
-      status: "success",
-      data: user,
+  if (!email) {
+    return res.status(400).send({
+      status: "error",
+      message: "Email query parameter is required",
     });
-}); // Api endpoint -> /users/me/:uid
+  }
+
+  // Validate that the email exists in the users collection
+  const user = await usersCollection.findOne({ email });
+  if (!user) {
+    return res.status(404).send({
+      status: "error",
+      message: "User not found",
+    });
+  }
+
+  res.status(200).send({
+    status: "success",
+    data: user
+  })
+}); // Api endpoint -> /users/me
 
 // Get single user
 router.get("/individual/:uid", async (req, res) => {

@@ -3,30 +3,66 @@ import express from "express";
 import getUsersCollection from "../collections/usersCollection.js";
 const router = express.Router();
 
-// Send a message
+// Helper function to validate email existence in users collection
+const validateEmail = async (email) => {
+  const usersCollection = await getUsersCollection();
+  const user = await usersCollection.findOne({ email });
+  return user !== null;
+};
+
+// Chat routes (updated to store messages as an array)
 router.post("/messages/send", async (req, res) => {
-  const { senderId, receiverId, message, senderRole, receiverRole } = req.body;
+  const { senderEmail, receiverEmail, message, senderRole, receiverRole } = req.body;
   const messagesCollection = await getChatCollection();
 
-  // Validate required fields
-  if (!senderId || !receiverId || !message || !senderRole || !receiverRole) {
+  if (!senderEmail || !receiverEmail || !message || !senderRole || !receiverRole) {
     return res.status(400).send({
       status: "error",
       message: "Missing required fields",
     });
   }
 
-  // Insert the message into the messages collection
+  // Validate that both sender and receiver emails exist in the users collection
+  const senderExists = await validateEmail(senderEmail);
+  const receiverExists = await validateEmail(receiverEmail);
+  if (!senderExists || !receiverExists) {
+    return res.status(404).send({
+      status: "error",
+      message: "Sender or receiver email not found in users collection",
+    });
+  }
+
+  // Sort participants to ensure consistent lookup
+  const participants = [senderEmail, receiverEmail].sort();
+
+  // Create the new message object
   const newMessage = {
-    senderId,
-    receiverId,
+    senderEmail,
+    receiverEmail,
     message,
     senderRole,
     receiverRole,
     timestamp: new Date(),
   };
 
-  await messagesCollection.insertOne(newMessage);
+  // Find the conversation document or create a new one
+  const conversation = await messagesCollection.findOne({
+    participants: { $all: participants },
+  });
+
+  if (conversation) {
+    // Update existing conversation by pushing the new message to the messages array
+    await messagesCollection.updateOne(
+      { _id: conversation._id },
+      { $push: { messages: newMessage } }
+    );
+  } else {
+    // Create a new conversation document
+    await messagesCollection.insertOne({
+      participants,
+      messages: [newMessage],
+    });
+  }
 
   res.status(201).send({
     status: "success",
@@ -34,52 +70,89 @@ router.post("/messages/send", async (req, res) => {
   });
 });
 
-// Retrieve messages between two users
-router.get("/messages/:senderId/:receiverId", async (req, res) => {
-  const { senderId, receiverId } = req.params;
+router.get("/messages/:senderEmail/:receiverEmail", async (req, res) => {
+  const { senderEmail, receiverEmail } = req.params;
   const messagesCollection = await getChatCollection();
 
-  // Fetch messages where sender and receiver match either direction
-  const messages = await messagesCollection.find({
-    $or: [
-      { senderId, receiverId },
-      { senderId: receiverId, receiverId: senderId }
-    ]
-  }).sort({ timeStamp: 1 }).toArray();
+  // Validate that both sender and receiver emails exist in the users collection
+  const senderExists = await validateEmail(senderEmail);
+  const receiverExists = await validateEmail(receiverEmail);
+  if (!senderExists || !receiverExists) {
+    return res.status(404).send({
+      status: "error",
+      message: "Sender or receiver email not found in users collection",
+    });
+  }
 
-  res.status(200).send({ status: "success", data: messages });
+  // Sort participants to match the stored document
+  const participants = [senderEmail, receiverEmail].sort();
+
+  // Find the conversation document
+  const conversation = await messagesCollection.findOne({
+    participants: { $all: participants },
+  });
+
+  if (!conversation) {
+    return res.status(200).send({
+      status: "success",
+      data: { messages: [] },
+    });
+  }
+
+  res.status(200).send({
+    status: "success",
+    data: conversation,
+  });
 });
 
-// Get list of users the current user has chatted with
-router.get("/messages/chats/:userId", async (req, res) => {
-  const userId = req.params.userId;
+router.get("/messages/chats/:userEmail", async (req, res) => {
+  const { userEmail } = req.params;
   const messagesCollection = await getChatCollection();
-  const usersCollection = await getUsersCollection();
+  const user = await getUsersCollection();
 
-  // Find all messages where the user is either the sender or receiver
-  const messages = await messagesCollection.find({
-    $or: [
-      { senderId: userId },
-      { receiverId: userId }
-    ]
-  }).toArray();
+  // Validate that the user email exists in the users collection
+  const userExists = await validateEmail(userEmail);
+  if (!userExists) {
+    return res.status(404).send({
+      status: "error",
+      message: "User email not found in users collection",
+    });
+  }
+
+  // Find all conversations where the user is a participant
+  const conversations = await messagesCollection
+    .find({
+      participants: userEmail,
+    })
+    .toArray();
 
   // Extract unique chat partners
   const chatPartners = new Set();
-  messages.forEach((msg) => {
-    if (msg.senderId === userId) {
-      chatPartners.add(msg.receiverId)
-    } else {
-      chatPartners.add(msg.senderId)
+  conversations.forEach((con) => {
+    const otherParticipant = con.participants.find((email) => email !== userEmail);
+    if (otherParticipant) {
+      chatPartners.add(otherParticipant);
     }
   });
 
-  // Fetch user details for each chat partner
-  const partners = await usersCollection.find({
-    _id: { $in: Array.from(chatPartners) }
-  }).toArray();
+  // Fetch user details for each chat partner using their email
+  const partners = await user
+    .find({ email: { $in: Array.from(chatPartners) } })
+    .toArray();
 
-  res.status(200).send({ status: "success", data: partners })
+  res.status(200).send({
+    status: "success",
+    data: partners,
+  });
+});
+
+router.get("/doctors", async (req, res) => {
+  const user = await getUsersCollection();
+  const doctors = await user.find({ role: "doctor" }).toArray();
+  res.send({
+    status: "success",
+    data: doctors
+  })
 });
 
 export default router;
