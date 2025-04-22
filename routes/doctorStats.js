@@ -87,24 +87,24 @@ router.get("/:email", async (req, res) => {
               $dateToString: { format: "%Y-%m-%d", date: "$paymentDate" },
             },
             totalAmount: { $sum: { $toDouble: "$amount" } },
-            transactions: {
-              $push: {
-                patientName: "$appointmentInfo.name",
-                amount: "$amount",
-                date: "$paymentDate",
-                time: "$appointmentInfo.time",
-                status: "$paymentStatus",
-              },
-            },
           },
         },
-        // { $sort: { _id } },
+        {
+          $project: {
+            date: "$_id",
+            totalRevenue: "$totalAmount",
+            _id: 0,
+          },
+        },
+        {
+          $sort: { date: -1 },
+        },
       ])
       .toArray();
 
     // total revenue of doctor
     const totalRevenue = revenueAgg.reduce(
-      (sum, item) => sum + item?.totalAmount,
+      (sum, item) => sum + item?.totalRevenue,
       0
     );
 
@@ -115,11 +115,11 @@ router.get("/:email", async (req, res) => {
         status: { $in: ["Approved", "Prescribed"] },
       })
       .project({
-        name:1,
-        date:1,
-        time:1,
-        consultationFee:1,
-        status:1,
+        name: 1,
+        date: 1,
+        time: 1,
+        consultationFee: 1,
+        status: 1,
       })
       .sort({ date: -1 })
       .toArray();
@@ -148,22 +148,16 @@ router.get("/:email", async (req, res) => {
     const response = {
       doctor: doctorInfo,
       stats: {
-        totalRevenue: totalRevenue ?? 0,
-        totalAppointments: allAppointments.length ?? 0,
-        totalPrescriptions: allPrescriptions.length ?? 0,
-        totalTreatedPatients: doctor.treated_patients ?? 0,
-        averageRating: doctor.rating ?? 0,
-        totalVote: doctor.vote ?? 0,
+        totalRevenue: totalRevenue || 0,
+        totalAppointments: allAppointments.length || 0,
+        totalPrescriptions: allPrescriptions.length || 0,
+        totalTreatedPatients: doctor.treated_patients || 0,
+        averageRating: doctor.rating || 0,
+        totalVote: doctor.vote || 0,
       },
       appointments: allAppointments,
       prescriptions: allPrescriptions,
-      revenue: {
-        daily: revenueAgg.map((item) => ({
-          date: item._id,
-          amount: item.totalAmount,
-        })),
-        transactions: revenueAgg.flatMap((item) => item.transactions),
-      },
+      revenueByDates: revenueAgg,
     };
 
     res.status(200).json(response);
