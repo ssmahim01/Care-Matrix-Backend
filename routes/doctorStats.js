@@ -20,7 +20,7 @@ await initDoctorCollection();
 async function initPaymentsCollection() {
   try {
     const collections = await connectDB();
-    doctorCollection = collections.payments;
+    paymentsCollection = collections.payments;
   } catch (error) {
     console.error("Failed to initialize payments collection:", error);
   }
@@ -30,7 +30,7 @@ await initPaymentsCollection();
 async function initPrescriptionsCollection() {
   try {
     const collections = await connectDB();
-    doctorCollection = collections.prescriptions;
+    prescriptionsCollection = collections.prescriptions;
   } catch (error) {
     console.error("Failed to initialize prescriptions collection:", error);
   }
@@ -39,7 +39,14 @@ await initPrescriptionsCollection();
 
 router.get("/:email", async (req, res) => {
   const email = req.params.email;
-  res.send(`${email} Doctor Stats Coming Soon...`);
+  if (!email) return res.status(400).json({ message: "Email Is Required" });
+
+  
+    res.status(200).json(response);
+  } catch (err) {
+    console.error("Error fetching doctor overview:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 export default router;
