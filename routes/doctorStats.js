@@ -5,6 +5,7 @@ const router = express.Router();
 // Initialize All COllections
 let doctorCollection;
 let paymentsCollection;
+let appointmentsCollection;
 let prescriptionsCollection;
 
 async function initDoctorCollection() {
@@ -16,6 +17,16 @@ async function initDoctorCollection() {
   }
 }
 await initDoctorCollection();
+
+async function initAppointmentsCollection() {
+  try {
+    const collections = await connectDB();
+    appointmentsCollection = collections.appointments;
+  } catch (error) {
+    console.error("Failed to initialize appointments collection:", error);
+  }
+}
+await initAppointmentsCollection();
 
 async function initPaymentsCollection() {
   try {
@@ -98,10 +109,19 @@ router.get("/:email", async (req, res) => {
     );
 
     // Appointments
-    const allAppointments = await paymentsCollection
+    const allAppointments = await appointmentsCollection
       .find({
-        "appointmentInfo.doctorId": doctorIdStr,
+        doctorId: doctorIdStr,
+        status: { $in: ["Approved", "Prescribed"] },
       })
+      .project({
+        name:1,
+        date:1,
+        time:1,
+        consultationFee:1,
+        status:1,
+      })
+      .sort({ date: -1 })
       .toArray();
 
     //Prescriptions
@@ -126,11 +146,11 @@ router.get("/:email", async (req, res) => {
 
     // Build response
     const response = {
-      doctorInfo,
+      doctor: doctorInfo,
       stats: {
-        totalRevenue,
-        totalAppointments: allAppointments.length,
-        totalPrescriptions: allPrescriptions.length,
+        totalRevenue: totalRevenue ?? 0,
+        totalAppointments: allAppointments.length ?? 0,
+        totalPrescriptions: allPrescriptions.length ?? 0,
         totalTreatedPatients: doctor.treated_patients ?? 0,
         averageRating: doctor.rating ?? 0,
         totalVote: doctor.vote ?? 0,
