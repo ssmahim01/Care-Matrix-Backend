@@ -155,4 +155,13 @@ router.get("/professionals", async (req, res) => {
   })
 });
 
+router.get("/patients", async (req, res) => {
+  const user = await getUsersCollection();
+  const patients = await user.find({role: "patient"}).toArray();
+  res.send({
+    status: "success",
+    data: patients
+  })
+});
+
 export default router;
