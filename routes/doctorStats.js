@@ -115,6 +115,7 @@ router.get("/:email", async (req, res) => {
         status: 1,
       })
       .sort({ date: -1 })
+      .limit(5)
       .toArray();
 
     const allPrescriptions = await prescriptionsCollection
@@ -134,6 +135,7 @@ router.get("/:email", async (req, res) => {
         date: 1,
       })
       .sort({ date: -1 })
+      .limit(5)
       .toArray();
 
     // total & avg revenue of doctor
@@ -163,12 +165,13 @@ router.get("/:email", async (req, res) => {
       appointments: allAppointments || [],
       prescriptions: allPrescriptions || [],
       revenueByDates: revenueAgg || [],
-      appointmentsPerDay: allAppointments.reduce((acc, appointment) => {
-        const date = new Date(appointment.date).toISOString().split("T")[0];
-        if (!acc[date]) acc[date] = 0;
-        acc[date]++;
-        return acc;
-      }, {}) || {},
+      appointmentsPerDay:
+        allAppointments.reduce((acc, appointment) => {
+          const date = new Date(appointment.date).toISOString().split("T")[0];
+          if (!acc[date]) acc[date] = 0;
+          acc[date]++;
+          return acc;
+        }, {}) || {},
     };
 
     res.status(200).json(response);
