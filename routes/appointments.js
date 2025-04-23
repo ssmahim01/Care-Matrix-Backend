@@ -76,7 +76,7 @@ router.get('/patients/:email', async (req, res) => {
   const email = req.params.email;
   const sortFormat = req.query.sort;
   let query = { email: email }
-  
+
   let cursor = appointmentsCollection.find(query);
 
   if (sortFormat === "asc") {
@@ -94,38 +94,29 @@ router.get('/doctors/:email', async (req, res) => {
   const sortFormat = req?.query?.sort;
   const search = req.query.search;
   const category = req.query.category;
-
-  console.log("Doctors email is", email);
-  console.log("Sort formate ", sortFormat);
-  console.log("Search with ", search);
-  console.log("Give result for ", category);
-
   const doctorsCollection = collections.doctors;
   const doctor = await doctorsCollection.findOne({ email: email })
-  const doctor_id = doctor._id.toString();
-  const query = { doctorId: doctor_id }
-  // console.log("doctor is ", doctor);
-  console.log("doctor id is ", doctor_id);
-  console.log("query is ", query);
+  const doctor_id = doctor?._id.toString();
+  const query = { doctorId: doctor_id, status: 'Approved' }
 
- // If search exists, add regex query for name or email
- if (search) {
-  query.$or = [
-    { name: { $regex: search, $options: 'i' } },
-    { email: { $regex: search, $options: 'i' } },
-  ];
-}
+  // If search exists, add regex query for name or email
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+  }
 
   let cursor = appointmentsCollection.find(query);
 
-    // Date-based filtering
-    const today = new Date().toISOString().split('T')[0]; // e.g. "2025-04-18"
+  // Date-based filtering
+  const today = new Date().toISOString().split('T')[0]; // e.g. "2025-04-18"
 
-    if (category === "upcoming") {
-      query.date = { $gt: today }; // upcoming = future
-    } else if (category === "past") {
-      query.date = { $lt: today }; // past = before today
-    }
+  if (category === "upcoming") {
+    query.date = { $gt: today }; // upcoming = future
+  } else if (category === "past") {
+    query.date = { $lt: today }; // past = before today
+  }
 
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 })
@@ -133,7 +124,6 @@ router.get('/doctors/:email', async (req, res) => {
     cursor = cursor.sort({ date: -1 })
   }
   const result = await cursor.toArray()
-  // console.log(result);
   res.send(result)
 })
 

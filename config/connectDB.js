@@ -33,7 +33,8 @@ async function connectDB() {
       contacts: db.collection("contacts"),
       emergency: db.collection("emergency"),
       ambulance: db.collection("ambulance"),
-      triage: db.collection("triage")
+      triage: db.collection("triage"),
+      reward_users: db.collection("reward_user")
     };
 
     return collections;
