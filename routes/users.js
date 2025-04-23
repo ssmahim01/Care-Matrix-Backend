@@ -337,11 +337,16 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-    if (role) query.role = role;
     if (search) query.name = { $regex: search, $options: "i" };
 
-    let sortOption = { createdAt: -1 };
+    let roleFilter = {};
+    if (role) {
+      roleFilter.role = role;
+    } else {
+      roleFilter.role = { $ne: "doctor" };
+    }
 
+    let sortOption = { createdAt: -1 };
     if (sort) {
       const [field, order] = sort.split("-");
       sortOption = {
@@ -349,10 +354,13 @@ router.get("/", async (req, res) => {
       };
     }
 
-    const total = await usersCollection.countDocuments(query);
+    const total = await usersCollection.countDocuments({
+      ...query,
+      ...roleFilter,
+    });
 
     const result = await usersCollection
-      .find(query)
+      .find({ ...query, ...roleFilter })
       .sort(sortOption)
       .project({
         _id: 1,
