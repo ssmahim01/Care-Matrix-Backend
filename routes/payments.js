@@ -128,13 +128,24 @@ router.get('/', async (req, res) => {
 
 // get all payment 
 router.get("/all", async (req, res) => {
+    const search = req.query.search;
+    const filter = {};
+
+    if (search) {
+        filter.$or = [
+            { "appointmentInfo.name": { $regex: search, $options: "i" } },
+            { "appointmentInfo.phone": { $regex: search, $options: "i" } },
+        ];
+    }
+
     try {
-        const result  = await paymentsCollection.find().sort({ paymentDate:-1 }).toArray();
-        res.send(result)
+        const result = await paymentsCollection.find(filter).sort({ paymentDate: -1 }).toArray();
+        res.send(result);
     } catch (error) {
         console.error('Error fetching payments:', error.message);
+        res.status(500).send({ error: 'Failed to fetch payments' });
     }
-})
+});
 
 // delete payment 
 
