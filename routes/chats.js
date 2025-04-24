@@ -10,19 +10,19 @@ const validateEmail = async (email) => {
   return user !== null;
 };
 
-// Chat routes (updated to store messages as an array)
+// Chat routes
 router.post("/messages/send", async (req, res) => {
-  const { senderEmail, receiverEmail, message, senderRole, receiverRole } = req.body;
+  const { senderEmail, receiverEmail, message, senderRole, receiverRole, photo } =
+    req.body;
   const messagesCollection = await getChatCollection();
 
-  if (!senderEmail || !receiverEmail || !message || !senderRole || !receiverRole) {
+  if (!senderEmail || !receiverEmail || (!message && !photo) || !senderRole || !receiverRole) {
     return res.status(400).send({
       status: "error",
       message: "Missing required fields",
     });
   }
 
-  // Validate that both sender and receiver emails exist in the users collection
   const senderExists = await validateEmail(senderEmail);
   const receiverExists = await validateEmail(receiverEmail);
   if (!senderExists || !receiverExists) {
@@ -32,32 +32,34 @@ router.post("/messages/send", async (req, res) => {
     });
   }
 
-  // Sort participants to ensure consistent lookup
+  // Upload image to ImgBB if provided
+  let image = null;
+  if (photo) {
+    image = photo;
+  }
+
   const participants = [senderEmail, receiverEmail].sort();
 
-  // Create the new message object
   const newMessage = {
     senderEmail,
     receiverEmail,
-    message,
+    message: message || "",
+    image,
     senderRole,
     receiverRole,
     timestamp: new Date(),
   };
 
-  // Find the conversation document or create a new one
   const conversation = await messagesCollection.findOne({
     participants: { $all: participants },
   });
 
   if (conversation) {
-    // Update existing conversation by pushing the new message to the messages array
     await messagesCollection.updateOne(
       { _id: conversation._id },
       { $push: { messages: newMessage } }
     );
   } else {
-    // Create a new conversation document
     await messagesCollection.insertOne({
       participants,
       messages: [newMessage],
@@ -67,7 +69,7 @@ router.post("/messages/send", async (req, res) => {
   res.status(201).send({
     status: "success",
     data: newMessage,
-  });
+  })
 });
 
 router.get("/messages/:senderEmail/:receiverEmail", async (req, res) => {
@@ -148,7 +150,7 @@ router.get("/messages/chats/:userEmail", async (req, res) => {
 
 router.get("/professionals", async (req, res) => {
   const user = await getUsersCollection();
-  const doctors = await user.find({role: {$in: ["doctor", "pharmacist"]}}).toArray();
+  const doctors = await user.find({ role: { $in: ["doctor", "pharmacist"] } }).sort({ lastLoginAt: -1 }).toArray();
   res.send({
     status: "success",
     data: doctors
@@ -157,7 +159,7 @@ router.get("/professionals", async (req, res) => {
 
 router.get("/patients", async (req, res) => {
   const user = await getUsersCollection();
-  const patients = await user.find({role: "patient"}).toArray();
+  const patients = await user.find({ role: "patient" }).sort({ lastLoginAt: -1 }).toArray();
   res.send({
     status: "success",
     data: patients
