@@ -144,8 +144,8 @@ router.get("/me", async (req, res) => {
 
   res.status(200).send({
     status: "success",
-    data: user
-  })
+    data: user,
+  });
 }); // Api endpoint -> /users/me
 
 // Get single user
@@ -196,42 +196,41 @@ router.post("/verify-password", async (req, res) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (isMatch) {
     res.send({ success: true });
-  }else {
+  } else {
     res.send({ success: false, message: "Incorrect current password" });
   }
 }); // Api endpoint -> /users/verify-password
 
-
 // update user profile route
 router.put("/update-profile/:email", async (req, res) => {
   try {
-    const email = req.params.email
-    const { data, profileImage } = req.body
+    const email = req.params.email;
+    const { data, profileImage } = req.body;
 
     if (!email || !data) {
-      return res.status(400).json({ message: "Missing email or data" })
+      return res.status(400).json({ message: "Missing email or data" });
     }
 
     const updateData = {
       ...data,
-    }
+    };
     if (profileImage) {
-      updateData.profileImage = profileImage 
+      updateData.profileImage = profileImage;
     }
     const result = await usersCollection.updateOne(
       { email },
       { $set: updateData }
-    )
+    );
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "User not found" })
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Profile updated successfully" })
+    res.status(200).json({ message: "Profile updated successfully" });
   } catch (error) {
-    console.error("Error updating profile:", error)
-    res.status(500).json({ message: "Internal server error" })
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-}) // API endpoint --> /users/update-profile/{value-->email}
+}); // API endpoint --> /users/update-profile/{value-->email}
 
 // Update user name --->
 router.patch("/update-name/:email", async (req, res) => {
@@ -278,7 +277,7 @@ router.patch("/update-photo/:email", async (req, res) => {
 }); // Api endpoint -> /users/update-photo/:email
 
 // Update the role
-router.patch("/convert-role/:email", async  (req, res) => {
+router.patch("/convert-role/:email", async (req, res) => {
   const email = req.params.email;
   const query = { email: email };
 
@@ -287,7 +286,7 @@ router.patch("/convert-role/:email", async  (req, res) => {
   };
 
   const updateResult = await usersCollection.updateOne(query, updateRole);
-  res.status(200).send({  message: "Updated the role", updateResult  });
+  res.status(200).send({ message: "Updated the role", updateResult });
 }); // API endpoint -> /users/convert-role
 
 // Convert to patient
@@ -328,19 +327,69 @@ router.patch("/update-password/:uid", async (req, res) => {
 
 // ADMIN ONLY -> Get all users --->
 router.get("/", async (req, res) => {
-  const result = await usersCollection.find().toArray();
-  res.send(
-    result.map((item) => ({
-      _id: item?._id,
-      role: item?.role,
-      name: item?.name,
-      email: item?.email,
-      photo: item?.photo,
-      phoneNumber: item?.phoneNumber,
-      createdAt: item?.createdAt,
-      lastLoginAt: item?.lastLoginAt,
-    }))
-  );
+  try {
+    let query = {};
+    const role = req.query.role;
+    const sort = req.query.sort;
+    const search = req.query.search;
+    const provider = req.query.provider;
+
+    const limit = 10;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    if (search) query.name = { $regex: search, $options: "i" };
+
+    let roleFilter = {};
+    if (role) {
+      roleFilter.role = role;
+    } else {
+      roleFilter.role = { $ne: "doctor" };
+    }
+
+    if (provider) query.providerId = provider;
+
+    let sortOption = { createdAt: -1 };
+    if (sort) {
+      const [field, order] = sort.split("-");
+      sortOption = {
+        [field]: order === "asc" ? 1 : -1,
+      };
+    }
+
+    const total = await usersCollection.countDocuments({
+      ...query,
+      ...roleFilter,
+    });
+
+    const result = await usersCollection
+      .find({ ...query, ...roleFilter })
+      .sort(sortOption)
+      .project({
+        _id: 1,
+        role: 1,
+        email: 1,
+        name: 1,
+        photo: 1,
+        phoneNumber: 1,
+        uid: 1,
+        createdAt: 1,
+        lastLoginAt: 1,
+        providerId: { $ifNull: ["$providerId", "password"] },
+      })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    res.send({
+      users: result,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      totalItems: total,
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
 }); // Api endpoint -> /users
 
 // get users by search params by their name
