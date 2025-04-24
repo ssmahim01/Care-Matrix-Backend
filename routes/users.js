@@ -332,6 +332,7 @@ router.get("/", async (req, res) => {
     const role = req.query.role;
     const sort = req.query.sort;
     const search = req.query.search;
+    const provider = req.query.provider;
 
     const limit = 10;
     const page = parseInt(req.query.page) || 1;
@@ -345,6 +346,8 @@ router.get("/", async (req, res) => {
     } else {
       roleFilter.role = { $ne: "doctor" };
     }
+
+    if (provider) query.providerId = provider;
 
     let sortOption = { createdAt: -1 };
     if (sort) {
@@ -373,7 +376,6 @@ router.get("/", async (req, res) => {
         createdAt: 1,
         lastLoginAt: 1,
         providerId: { $ifNull: ["$providerId", "password"] },
-        createdBy: { $ifNull: ["$createdBy", "$providerId"] },
       })
       .skip(skip)
       .limit(limit)
