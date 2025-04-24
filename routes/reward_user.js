@@ -17,18 +17,20 @@ async function mongoDBCollection() {
 // Ensure the database is initialized before handling routes
 mongoDBCollection();
 
-router.get("/", async(req, res) => {
-    const result = await rewardUsersCollection.find().toArray()
-    console.log(result);
-    res.send(result)
+router.get("/:email", async (req, res) => {
+  const email = req.params.email;
+  const query = { userEmail: email }
+  const result = await rewardUsersCollection.find(query).toArray()
+  console.log(result);
+  res.send(result)
 })
 
 // Add reward user 
-router.post("/", async(req, res) => {
-    const reward = req.body;
-    const result = await rewardUsersCollection.insertOne(reward)
-    res.send(result)
-    // console.log("Reward info", reward);
+router.post("/", async (req, res) => {
+  const reward = req.body;
+  const result = await rewardUsersCollection.insertOne(reward)
+  res.send(result)
+  // console.log("Reward info", reward);
 })
 
 
