@@ -33,6 +33,14 @@ router.post("/", async (req, res) => {
   // console.log("Reward info", reward);
 })
 
+// Delete reward 
+router.delete("/:id", async(req, res) => {
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)}
+  const result = await rewardUsersCollection.deleteOne(query)
+  res.send(result)
+})
+
 
 // Api endpoint -> /reward-users
 

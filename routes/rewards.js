@@ -78,6 +78,29 @@ router.post("/award-points", async (req, res) => {
     const rewardsCollection = await getRewardsCollection();
     await rewardsCollection.insertOne(rewardInfo);
     res.send({ success: true, message: "Points awarded" });
-}); // API Endpoint -> /rewards/award-points
+}); 
+
+
+router.patch("/:email", async(req, res) => {
+    const email = req.params.email;
+    const {decreasePoint} = req.body;
+    const filter = {userEmail: email};
+    const rewardsCollection = await getRewardsCollection();
+    const user = await rewardsCollection.findOne(filter)
+    
+    const newPoints = user?.points - decreasePoint; 
+
+    const updatedPoints = {
+        $set: {
+          points: newPoints
+        }
+      }
+
+      const result = await rewardsCollection.updateOne(filter, updatedPoints)
+      res.send(result)
+
+})
+
+// API Endpoint -> /rewards/award-points
 
 export default router;
