@@ -24,6 +24,7 @@ import assignUser from './assignUsers.js';
 import emergency from './emergency.js'
 import ambulance from './ambulance.js'
 import triage from "./triage.js"
+import reward_users from "./reward_user.js"
 import chatMessages from './chats.js';
 import prescriptions from "./prescription.js";
 import doctorStats from "./doctorStats.js";
@@ -61,6 +62,7 @@ router.use("/triage", triage); // Ambulance API routes
 router.use("/revenue-insights", revenueRoutes); // Revenue Insights API routes
 router.use("/prescriptions", prescriptions); // prescriptions Insights API routes
 router.use("/firebase", assignUser); // Firebase User API routes
+router.use("/reward-users", reward_users); // Reward User API routes
 router.use("/chat", chatMessages); // Chat Messages API Routes
 router.use("/doctor-stats", doctorStats); // Doctor Stats API routes
 
