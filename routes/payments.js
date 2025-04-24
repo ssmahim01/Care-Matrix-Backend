@@ -9,6 +9,10 @@ const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 let paymentsCollection;
+let doctorsCollection;
+
+
+
 
 async function initCollection() {
     try {
@@ -25,6 +29,22 @@ async function initCollection() {
 
 // Initialize collection
 initCollection();
+
+async function doctorCollection() {
+    try {
+      const dbCollections = await connectDB();
+      if (!dbCollections?.doctors) {
+        throw new Error("doctors collection not initialized.");
+      }
+      doctorsCollection = dbCollections.doctors;
+      // console.log('Payments collection initialized successfully.');
+    } catch (error) {
+      console.error("Failed to initialize payments collection:", error.message);
+    }
+  }
+  
+  // Initialize collection
+  doctorCollection();
 
 // Create Payment Intent
 router.post('/create-payment-intent', async (req, res) => {
@@ -108,13 +128,24 @@ router.get('/', async (req, res) => {
 
 // get all payment 
 router.get("/all", async (req, res) => {
+    const search = req.query.search;
+    const filter = {};
+
+    if (search) {
+        filter.$or = [
+            { "appointmentInfo.name": { $regex: search, $options: "i" } },
+            { "appointmentInfo.phone": { $regex: search, $options: "i" } },
+        ];
+    }
+
     try {
-        const result  = await paymentsCollection.find().toArray();
-        res.send(result)
+        const result = await paymentsCollection.find(filter).sort({ paymentDate: -1 }).toArray();
+        res.send(result);
     } catch (error) {
         console.error('Error fetching payments:', error.message);
+        res.status(500).send({ error: 'Failed to fetch payments' });
     }
-})
+});
 
 // delete payment 
 
@@ -133,6 +164,26 @@ router.delete("/delete/:id", async (req, res) => {
     }
 }
 );
+
+
+router.get("/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+
+      const doctor = await doctorsCollection.findOne({ email });
+
+      const doctorId = doctor._id.toString();
+
+
+      const query = { "appointmentInfo.doctorId": doctorId };
+      const result = await paymentsCollection.find(query).sort({ paymentDate:-1 }).toArray();
+
+      res.send(result);
+    } catch (error) {
+
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
 
 
