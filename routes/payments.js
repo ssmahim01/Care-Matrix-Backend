@@ -9,6 +9,10 @@ const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 let paymentsCollection;
+let doctorsCollection;
+
+
+
 
 async function initCollection() {
     try {
@@ -25,6 +29,22 @@ async function initCollection() {
 
 // Initialize collection
 initCollection();
+
+async function doctorCollection() {
+    try {
+      const dbCollections = await connectDB();
+      if (!dbCollections?.doctors) {
+        throw new Error("doctors collection not initialized.");
+      }
+      doctorsCollection = dbCollections.doctors;
+      // console.log('Payments collection initialized successfully.');
+    } catch (error) {
+      console.error("Failed to initialize payments collection:", error.message);
+    }
+  }
+  
+  // Initialize collection
+  doctorCollection();
 
 // Create Payment Intent
 router.post('/create-payment-intent', async (req, res) => {
@@ -109,7 +129,7 @@ router.get('/', async (req, res) => {
 // get all payment 
 router.get("/all", async (req, res) => {
     try {
-        const result  = await paymentsCollection.find().toArray();
+        const result  = await paymentsCollection.find().sort({ paymentDate:-1 }).toArray();
         res.send(result)
     } catch (error) {
         console.error('Error fetching payments:', error.message);
@@ -133,6 +153,26 @@ router.delete("/delete/:id", async (req, res) => {
     }
 }
 );
+
+
+router.get("/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+
+      const doctor = await doctorsCollection.findOne({ email });
+
+      const doctorId = doctor._id.toString();
+
+
+      const query = { "appointmentInfo.doctorId": doctorId };
+      const result = await paymentsCollection.find(query).sort({ paymentDate:-1 }).toArray();
+
+      res.send(result);
+    } catch (error) {
+
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
 
 
