@@ -36,6 +36,41 @@ router.get("/all", async (req, res) => {
     res.send(results)
 })
 
+router.patch("/increase-helpful/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const userId = req.body.userId;
+
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
+
+        const query = { _id: new ObjectId(id) };
+
+        const review = await reviewCollection.findOne(query);
+
+        if (!review) {
+            return res.status(404).json({ message: "Review not found" });
+        }
+
+        if (review.helpfulBy?.includes(userId)) {
+            return res.status(400).json({ message: "You have already marked this review as helpful" });
+        }
+
+        const update = {
+            $inc: { helpful: 1 },
+            $push: { helpfulBy: userId }
+        };
+
+        const result = await reviewCollection.updateOne(query, update);
+
+        res.json({ message: "Helpful count increased", result });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 
 // ADMIN ONLY -> Get emergency text --->
