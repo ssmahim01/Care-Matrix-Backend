@@ -71,6 +71,26 @@ router.patch("/increase-helpful/:id", async (req, res) => {
     }
 });
 
+router.get("/search", async (req, res) => {
+    try {
+        const search = req.query.name;
+
+        if (!search) {
+            return res.status(400).json({ message: "Search term is required" });
+        }
+
+        const query = {
+            name: { $regex: search, $options: "i" }
+        };
+
+        const results = await reviewCollection.find(query).toArray();
+
+        res.json(results);
+    } catch (error) {
+        console.error("Search error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 
 // ADMIN ONLY -> Get emergency text --->
