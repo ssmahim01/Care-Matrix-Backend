@@ -92,6 +92,39 @@ router.get("/search", async (req, res) => {
     }
 });
 
+router.put("/comment-review/:id", async (req, res) => {
+    try {
+      const id = req.params.id;
+      const { text } = req.body;
+  
+      if (!text) {
+        return res.status(400).json({ message: "Comment text is required" });
+      }
+  
+      const query = { _id: new ObjectId(id) };
+  
+      const updatedDoc = {
+        $push: {
+          replyComments: {
+            text,
+            date: new Date(), // ✅ add time when reply is made
+          },
+        },
+      };
+  
+      const result = await reviewCollection.updateOne(query, updatedDoc);
+  
+      if (result.modifiedCount > 0) {
+        res.status(200).json({ message: "Reply added successfully" });
+      } else {
+        res.status(404).json({ message: "Review not found or reply not added" });
+      }
+    } catch (error) {
+      console.error("Error commenting on review:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 // ADMIN ONLY -> Get emergency text --->
 router.get("/", async (req, res) => {
