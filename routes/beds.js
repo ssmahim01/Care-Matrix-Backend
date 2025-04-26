@@ -20,10 +20,14 @@ await initCollection();
 
 // get all bed info 
 router.get("/", async (req, res) => {
-
-    const result = await bedsCollection.find().toArray();
-    res.send(result);
-
+    try {
+        const result = await bedsCollection.find().toArray();
+        res.send(result);
+    } catch (error) {
+        res.status(500).json({
+            error: "failed to fetch bed info."
+        })
+    }
 });
 
 
@@ -50,8 +54,10 @@ router.post("/", async (req, res) => {
 router.patch("/status/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const { status } = req.body;
-        
+        const {
+            status
+        } = req.body;
+
         const filter = {
             _id: new ObjectId(id)
         };
@@ -64,26 +70,30 @@ router.patch("/status/:id", async (req, res) => {
         const result = await bedsCollection.updateOne(filter, updatedDoc);
         res.send(result);
     } catch (error) {
-        console.error("Error updating status:", error);
-        res.status(500).send({ error: "Failed to update status" });
+        // console.error("Error updating status:", error);
+        res.status(500).send({
+            error: "Failed to update status"
+        });
     }
 });
 
 
 
 // DELETE a bed by ID
+
 router.delete("/delete/:id", async (req, res) => {
-    const id = req.params.id;
+    try {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const result = await bedsCollection.deleteOne(filter);
+      res.send({
+        data: result,
+        message: "Beds Deleted Successfully!",
+      });
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  });
 
-    const filter = {
-        _id: new ObjectId(id)
-    };
-    const result = await bedsCollection.deleteOne(filter);
-    res.send(result);
-
-});
-
-
-// Api endpoint -> /appointment
 
 export default router;
