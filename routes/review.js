@@ -15,6 +15,23 @@ async function initCollection() {
 await initCollection();
 
 
+router.post("/add", async (req, res) => {
+    try {
+        const review = req.body;
+        const result = await reviewCollection.insertOne({ ...review });
+        res.status(201).send({
+            message: "Review added successfully",
+            review,
+            result
+        });
+    } catch (error) {
+        res.status(500).send({
+            error: "Failed to add review. Please try again later."
+        });
+    }
+})
+
+
 
 // ADMIN ONLY -> Get emergency text --->
 router.get("/", async (req, res) => {
