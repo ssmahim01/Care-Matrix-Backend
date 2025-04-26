@@ -186,6 +186,7 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
+// get all doctors payments
 router.get("/:email", async (req, res) => {
   try {
     const email = req.params.email;
