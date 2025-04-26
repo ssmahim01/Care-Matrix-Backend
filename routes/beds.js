@@ -26,33 +26,49 @@ router.get("/", async (req, res) => {
 
 });
 
+
+
 // post bed info
+
 router.post("/", async (req, res) => {
-    const bed = req.body
-    const result = await bedsCollection.insertOne(bed)
-    res.send(result)
+    try {
+        const bed = req.body
+
+        const result = await bedsCollection.insertOne(bed);
+        res.send(result);
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
 });
+
 
 
 // update bed status
+
 router.patch("/status/:id", async (req, res) => {
-    const id = req.params.id
-    const {
-        status
-    } = req.body
-    // console.log(status, id);
-    const filter = {
-        _id: new ObjectId(id)
+    try {
+        const id = req.params.id;
+        const { status } = req.body;
+        
+        const filter = {
+            _id: new ObjectId(id)
+        };
+        const updatedDoc = {
+            $set: {
+                status: status
+            }
+        };
+
+        const result = await bedsCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+    } catch (error) {
+        console.error("Error updating status:", error);
+        res.status(500).send({ error: "Failed to update status" });
     }
-    const updatedDoc = {
-        $set: {
-            status: status
-        }
-    }
-    // console.log(status);
-    const result = await bedsCollection.updateOne(filter, updatedDoc)
-    res.send(result)
 });
+
 
 
 // DELETE a bed by ID
