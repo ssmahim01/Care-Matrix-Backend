@@ -31,6 +31,11 @@ router.post("/add", async (req, res) => {
     }
 })
 
+router.get("/all", async (req, res) => {
+    const results = await reviewCollection.find().toArray();
+    res.send(results)
+})
+
 
 
 // ADMIN ONLY -> Get emergency text --->
