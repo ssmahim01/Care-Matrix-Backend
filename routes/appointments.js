@@ -33,7 +33,7 @@ router.get("/:email", async (req, res) => {
   let cursor = appointmentsCollection.find(query);
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
-  } else{
+  } else if (sortFormat === "desc") {
     cursor = cursor.sort({ date: -1 }); // descending
   }
   const result = await cursor.toArray();
@@ -78,11 +78,8 @@ router.get("/patients/:email", async (req, res) => {
 
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
-    // cursor = appointmentsCollection.find(query).sort({ date: 1, serialNumber: 1 }); // ascending with serial number
-  } else {
+  } else if (sortFormat === "desc") {
     cursor = cursor.sort({ date: -1 }); // descending
-    // cursor = appointmentsCollection.find(query).sort({ date: -1, serialNumber: 1 }); //descending with serial number
-
   }
   const result = await cursor.toArray();
   res.send(result);
@@ -95,6 +92,12 @@ router.get("/doctors/:email", async (req, res) => {
   const search = req.query.search;
   const category = req.query.category;
   const filter = req.query.filter;
+
+  // console.log("Doctors email is", email);
+  // console.log("Sort formate ", sortFormat);
+  // console.log("Search with ", search);
+  // console.log("Give result for ", category);
+  // console.log("Give result for ", filter);
 
   const doctorsCollection = collections.doctors;
   const doctor = await doctorsCollection.findOne({ email: email });
@@ -137,7 +140,7 @@ router.get("/doctors/:email", async (req, res) => {
 
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 });
-  } else{
+  } else if (sortFormat === "desc") {
     cursor = cursor.sort({ date: -1 });
   }
   const result = await cursor.toArray();
