@@ -33,7 +33,7 @@ router.get("/:email", async (req, res) => {
   let cursor = appointmentsCollection.find(query);
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
-  } else if (sortFormat === "desc") {
+  } else{
     cursor = cursor.sort({ date: -1 }); // descending
   }
   const result = await cursor.toArray();
