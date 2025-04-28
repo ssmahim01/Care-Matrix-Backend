@@ -1,5 +1,6 @@
-import express from 'express';
-import { connectDB } from '../config/connectDB.js';
+import express from "express";
+import { connectDB } from "../config/connectDB.js";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
@@ -20,6 +21,18 @@ router.get('/', async (req, res) => {
         res.send(result);
     } catch (error) {
         res.status(500).json({ error: 'failed to fetch blog info.' });
+    }
+});
+
+// post blog info
+router.post('/', async (req, res) => {
+    try {
+        const blogData = req.body;
+
+        const result = await blogCollection.insertOne(blogData);
+        res.send(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
