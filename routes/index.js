@@ -28,6 +28,7 @@ import reward_users from "./reward_user.js"
 import chatMessages from './chats.js';
 import prescriptions from "./prescription.js";
 import doctorStats from "./doctorStats.js";
+import blogs from "./blogs.js";
 
 const router = express.Router();
 
@@ -65,5 +66,6 @@ router.use("/firebase", assignUser); // Firebase User API routes
 router.use("/reward-users", reward_users); // Reward User API routes
 router.use("/chat", chatMessages); // Chat Messages API Routes
 router.use("/doctor-stats", doctorStats); // Doctor Stats API routes
+router.use("blogs", blogs); // Blog API routes
 
 export default router;

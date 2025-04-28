@@ -83,17 +83,21 @@ router.patch("/status/:id", async (req, res) => {
 
 router.delete("/delete/:id", async (req, res) => {
     try {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const result = await bedsCollection.deleteOne(filter);
-      res.send({
-        data: result,
-        message: "Beds Deleted Successfully!",
-      });
+        const id = req.params.id;
+        const filter = {
+            _id: new ObjectId(id)
+        };
+        const result = await bedsCollection.deleteOne(filter);
+        res.send({
+            data: result,
+            message: "Beds Deleted Successfully!",
+        });
     } catch (error) {
-      res.status(500).send({ message: error.message });
+        res.status(500).send({
+            message: error.message
+        });
     }
-  });
+});
 
 
 export default router;
