@@ -21,7 +21,7 @@ router.get("/:email", async (req, res) => {
   const email = req.params.email;
   const query = { userEmail: email }
   const result = await rewardUsersCollection.find(query).toArray()
-  console.log(result);
+  // console.log(result);
   res.send(result)
 })
 

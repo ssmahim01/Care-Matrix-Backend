@@ -26,24 +26,37 @@ router.post("/", async (req, res) => {
 
 // Get appointments for receptionists
 router.get("/:email", async (req, res) => {
-  const email = req.params.email;
-  const sortFormat = req.query.sort;
 
-  let query = {};
+  const email = req.params.email;
+  const sortFormat = req?.query?.sort;
+  const search = req.query.search;
+  const category = req.query.category;
+  let query = { };
+
+  if (search) {
+    query.$or = [
+      { doctorName: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+    ];
+  }
   let cursor = appointmentsCollection.find(query);
+
+  // Date-based filtering
+  const today = new Date().toISOString().split("T")[0]; // e.g. "2025-04-18"
+
+  if (category === "upcoming") {
+    query.date = { $gt: today }; // upcoming = future
+  } else if (category === "past") {
+    query.date = { $lt: today }; // past = before today
+  }
+
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
   } else if (sortFormat === "desc") {
     cursor = cursor.sort({ date: -1 }); // descending
   }
-  const result = await cursor.toArray();
-  res.send(result);
-});
 
-router.delete("/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  const result = await appointmentsCollection.deleteOne(query);
+  const result = await cursor.toArray();
   res.send(result);
 });
 
@@ -71,10 +84,28 @@ router.patch("/:id", async (req, res) => {
 // Get appointments for patients
 router.get("/patients/:email", async (req, res) => {
   const email = req.params.email;
-  const sortFormat = req.query.sort;
+  const sortFormat = req?.query?.sort;
+  const search = req.query.search;
+  const category = req.query.category;
   let query = { email: email };
 
+
+  if (search) {
+    query.$or = [
+      { doctorName: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+    ];
+  }
   let cursor = appointmentsCollection.find(query);
+
+  // Date-based filtering
+  const today = new Date().toISOString().split("T")[0]; // e.g. "2025-04-18"
+
+  if (category === "upcoming") {
+    query.date = { $gt: today }; // upcoming = future
+  } else if (category === "past") {
+    query.date = { $lt: today }; // past = before today
+  }
 
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
@@ -84,6 +115,15 @@ router.get("/patients/:email", async (req, res) => {
   const result = await cursor.toArray();
   res.send(result);
 });
+
+// delete appointments from patients 
+router.delete("/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await appointmentsCollection.deleteOne(query);
+  res.send(result);
+});
+
 
 // Appointments for doctor
 router.get("/doctors/:email", async (req, res) => {
