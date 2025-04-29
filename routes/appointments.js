@@ -71,10 +71,31 @@ router.patch("/:id", async (req, res) => {
 // Get appointments for patients
 router.get("/patients/:email", async (req, res) => {
   const email = req.params.email;
-  const sortFormat = req.query.sort;
+  const sortFormat = req?.query?.sort;
+  const search = req.query.search;
+  const category = req.query.category;
   let query = { email: email };
 
+  console.log("sort", sortFormat);
+  console.log("category", category);
+  console.log("search", search);
+
+  if (search) {
+    query.$or = [
+      { doctorName: { $regex: search, $options: "i" } },
+      { name: { $regex: search, $options: "i" } },
+    ];
+  }
   let cursor = appointmentsCollection.find(query);
+
+  // Date-based filtering
+  const today = new Date().toISOString().split("T")[0]; // e.g. "2025-04-18"
+
+  if (category === "upcoming") {
+    query.date = { $gt: today }; // upcoming = future
+  } else if (category === "past") {
+    query.date = { $lt: today }; // past = before today
+  }
 
   if (sortFormat === "asc") {
     cursor = cursor.sort({ date: 1 }); // ascending
