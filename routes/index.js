@@ -28,11 +28,8 @@ import reward_users from "./reward_user.js"
 import chatMessages from './chats.js';
 import prescriptions from "./prescription.js";
 import doctorStats from "./doctorStats.js";
-<<<<<<< HEAD
 import review from "./review.js";
-=======
 import blogsRoute from "./blogs.js";
->>>>>>> 8b0c92c4e22c766d92941336947571ed940563d3
 
 const router = express.Router();
 
@@ -70,10 +67,7 @@ router.use("/firebase", assignUser); // Firebase User API routes
 router.use("/reward-users", reward_users); // Reward User API routes
 router.use("/chat", chatMessages); // Chat Messages API Routes
 router.use("/doctor-stats", doctorStats); // Doctor Stats API routes
-<<<<<<< HEAD
 router.use("/review", review); // Doctor Stats API routes
-=======
 router.use("/blogs", blogsRoute); // Blog API routes
->>>>>>> 8b0c92c4e22c766d92941336947571ed940563d3
 
 export default router;
