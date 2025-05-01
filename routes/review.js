@@ -144,7 +144,7 @@ router.get("/department", async (req, res) => {
   
     res.send(reviews);
   });
-  
+
 
 
 // ADMIN ONLY -> Get emergency text --->

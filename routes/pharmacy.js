@@ -41,7 +41,12 @@ router.get("/medicines", async (req, res) => {
 
     const query = {};
     if (category !== "All Medicines") query.category = category;
-    if (search) query.brandName = { $regex: search, $options: "i" };
+    if (search) {
+      query.$or = [
+        { brandName: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
+    }
 
     const total = await medicinesCollection.countDocuments(query);
     const result = await medicinesCollection
@@ -59,7 +64,7 @@ router.get("/medicines", async (req, res) => {
         discountedAmount: medicine?.price?.discount?.discountedAmount,
       },
       imageURL: medicine?.imageURL,
-      availability: medicine?.availabilityStatus
+      availability: medicine?.availabilityStatus,
     }));
 
     res.send({

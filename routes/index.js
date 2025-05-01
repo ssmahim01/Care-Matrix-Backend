@@ -30,6 +30,7 @@ import prescriptions from "./prescription.js";
 import doctorStats from "./doctorStats.js";
 import review from "./review.js";
 import blogsRoute from "./blogs.js";
+
 const router = express.Router();
 
 // Root Api route
@@ -68,5 +69,6 @@ router.use("/chat", chatMessages); // Chat Messages API Routes
 router.use("/doctor-stats", doctorStats); // Doctor Stats API routes
 router.use("/review", review); // Doctor Stats API routes
 router.use("/blogs", blogsRoute); // Blog API route
+router.use("/blogs", blogsRoute); // Blog API routes
 
 export default router;
