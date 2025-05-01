@@ -94,36 +94,51 @@ router.get("/search", async (req, res) => {
 
 router.put("/comment-review/:id", async (req, res) => {
     try {
-      const id = req.params.id;
-      const { text } = req.body;
-  
-      if (!text) {
-        return res.status(400).json({ message: "Comment text is required" });
-      }
-  
-      const query = { _id: new ObjectId(id) };
-  
-      const updatedDoc = {
-        $push: {
-          replyComments: {
-            text,
-            date: new Date(), // ✅ add time when reply is made
-          },
-        },
-      };
-  
-      const result = await reviewCollection.updateOne(query, updatedDoc);
-  
-      if (result.modifiedCount > 0) {
-        res.status(200).json({ message: "Reply added successfully" });
-      } else {
-        res.status(404).json({ message: "Review not found or reply not added" });
-      }
+        const id = req.params.id;
+        const { text } = req.body;
+
+        if (!text) {
+            return res.status(400).json({ message: "Comment text is required" });
+        }
+
+        const query = { _id: new ObjectId(id) };
+
+        const updatedDoc = {
+            $push: {
+                replyComments: {
+                    text,
+                    date: new Date(), // ✅ add time when reply is made
+                },
+            },
+        };
+
+        const result = await reviewCollection.updateOne(query, updatedDoc);
+
+        if (result.modifiedCount > 0) {
+            res.status(200).json({ message: "Reply added successfully" });
+        } else {
+            res.status(404).json({ message: "Review not found or reply not added" });
+        }
     } catch (error) {
-      console.error("Error commenting on review:", error);
-      res.status(500).json({ message: "Internal server error" });
+        console.error("Error commenting on review:", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 });
+
+router.get("/department", async (req, res) => {
+    const { department } = req.query;
+  
+    if (!department) {
+      return res.status(400).json({ error: "Department is required" });
+    }
+  
+    const reviews = await reviewCollection
+      .find({ department: department.toString().toLowerCase() }) // optional: ensure lowercase match
+      .toArray();
+  
+    res.send(reviews);
+  });
+  
 
 
 // ADMIN ONLY -> Get emergency text --->
