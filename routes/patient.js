@@ -102,7 +102,7 @@ router.get("/stats/:email", async (req, res) => {
       appointment: await appointmentsCollection.findOne(
         {
           email,
-          status: "pending",
+          status: "Approved",
           date: { $gte: now.toISOString() }, // only future date & time
         },
         {
