@@ -1,6 +1,10 @@
 import express from "express";
-import { connectDB } from "../config/connectDB.js";
-import { ObjectId } from "mongodb";
+import {
+    connectDB
+} from "../config/connectDB.js";
+import {
+    ObjectId
+} from "mongodb";
 
 const router = express.Router();
 
@@ -17,10 +21,14 @@ await initCollection();
 // get all blog info
 router.get('/', async (req, res) => {
     try {
-        const result = await blogCollection.find().sort({ date: -1 }).toArray();
+        const result = await blogCollection.find().sort({
+            date: -1
+        }).toArray();
         res.send(result);
     } catch (error) {
-        res.status(500).json({ error: 'failed to fetch blog info.' });
+        res.status(500).json({
+            error: 'failed to fetch blog info.'
+        });
     }
 });
 
@@ -35,10 +43,11 @@ router.get('/:id', async (req, res) => {
         const result = await blogCollection.findOne(filter);
         res.send(result);
     } catch (error) {
-        res.status(500).json({ error: 'failed to fetch blog info.' });
+        res.status(500).json({
+            error: 'failed to fetch blog info.'
+        });
     }
-    }
-);
+});
 
 
 
@@ -51,7 +60,9 @@ router.post('/', async (req, res) => {
         const result = await blogCollection.insertOne(blogData);
         res.send(result);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            error: error.message
+        });
     }
 });
 
@@ -69,7 +80,51 @@ router.delete('/delete/:id', async (req, res) => {
             message: "Blog Deleted Successfully!",
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            error: error.message
+        });
+    }
+});
+
+
+// update blog info 
+router.put('/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const updatedBlogData = req.body;
+
+       
+
+        const filter = {
+            _id: new ObjectId(id)
+        };
+
+        const updateDoc = {
+            $set: updatedBlogData
+        };
+        const options = {
+            upsert: true
+        }
+
+        const result = await blogCollection.updateOne(filter,
+            updateDoc,
+            options
+        );
+
+        if (!result) {
+            return res.status(404).json({
+                error: 'Blog not found.'
+            });
+        }
+
+        res.send({
+            data: result,
+            message: "Blog Updated Successfully!"
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
     }
 });
 
