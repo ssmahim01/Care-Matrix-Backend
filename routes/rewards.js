@@ -87,7 +87,7 @@ router.patch("/:email", async(req, res) => {
     const filter = {userEmail: email};
     const rewardsCollection = await getRewardsCollection();
     const user = await rewardsCollection.findOne(filter)
-    console.log(user);
+    // console.log(user);
     const newPoints = user?.points - decreasePoint; 
 
     const updatedPoints = {

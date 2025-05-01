@@ -28,6 +28,8 @@ import reward_users from "./reward_user.js"
 import chatMessages from './chats.js';
 import prescriptions from "./prescription.js";
 import doctorStats from "./doctorStats.js";
+import review from "./review.js";
+import blogsRoute from "./blogs.js";
 
 const router = express.Router();
 
@@ -39,7 +41,7 @@ router.get("/", (req, res) => {
 router.use("/payments", paymentsRoutes); // Payments API
 router.use("/auth", authRoutes); // Jwt Api routes
 router.use("/users", userRoutes); // Users Api routes
-router.use("/appointments", appointmentRoutes); // Appointments Api routes
+router.use("/appointments",  appointmentRoutes); // Appointments Api routes
 router.use("/banners", banners); //banner apis routes
 router.use("/beds", bedsRoutes); //beds apis routes
 router.use("/dashboard/administrator/doctors", doctorRoutes); // API routes of Doctors
@@ -65,5 +67,8 @@ router.use("/firebase", assignUser); // Firebase User API routes
 router.use("/reward-users", reward_users); // Reward User API routes
 router.use("/chat", chatMessages); // Chat Messages API Routes
 router.use("/doctor-stats", doctorStats); // Doctor Stats API routes
+router.use("/review", review); // Doctor Stats API routes
+router.use("/blogs", blogsRoute); // Blog API route
+router.use("/blogs", blogsRoute); // Blog API routes
 
 export default router;

@@ -37,6 +37,8 @@ async function connectDB() {
       reward_users: db.collection("reward_user"),
       prescriptions: db.collection("prescriptions"),
       chat: db.collection("chat"),
+      review: db.collection("review"),
+      blogs: db.collection("blogs"),
     };
 
     return collections;

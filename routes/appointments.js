@@ -24,6 +24,11 @@ router.post("/", async (req, res) => {
   res.send(result);
 });
 
+router.get("/", async (req, res)=> {
+  const result = await appointmentsCollection.find().toArray()
+  res.send(result)
+})
+
 // Get appointments for receptionists
 router.get("/:email", async (req, res) => {
 
