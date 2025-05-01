@@ -48,23 +48,8 @@ router.post("/create-payment-intent", async (req, res) => {
   try {
     const { fee } = req.body;
 
-        if (!fee || isNaN(parseFloat(fee))) {
-            return res.status(400).json({ error: 'Invalid fee amount' });
-        }
-
-        const amount = Math.round(parseFloat(fee) * 100); // Convert to cents
-        // console.log(`Creating payment intent: $${fee} => ${amount} cents`);
-
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount,
-            currency: 'bdt',
-            payment_method_types: ['card'],
-        });
-
-        res.status(200).json({ clientSecret: paymentIntent.client_secret });
-    } catch (error) {
-        console.error('Payment Intent Error:', error.message);
-        res.status(500).json({ error: error.message });
+    if (!fee || isNaN(parseFloat(fee))) {
+      return res.status(400).json({ error: "Invalid fee amount" });
     }
 
     const amount = Math.round(parseFloat(fee) * 100); // Convert to cents
@@ -72,7 +57,7 @@ router.post("/create-payment-intent", async (req, res) => {
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: "usd",
+      currency: "bdt",
       payment_method_types: ["card"],
     });
 
