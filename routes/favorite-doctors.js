@@ -26,7 +26,18 @@ router.get('/:email', async (req, res) => {
 // Post favorite doctor 
 router.post('/', async (req, res) => {
     const info = req.body;
-    // console.log(info);
+    const email = info?.email;
+    console.log(info);
+    const doctorId = info?.doctorInfo?._id;
+    // Check if doctor is already in favorite list
+    const isExist = await favoriteDoctorsCollection.findOne({
+        email: email,
+        "doctorInfo._id": doctorId
+    });
+
+    if (isExist) {
+        return res.status(409).send({ message: "Doctor already in favorites" });
+    }
     const result = await favoriteDoctorsCollection.insertOne(info)
     res.send(result)
 })

@@ -94,7 +94,6 @@ router.get("/patients/:email", async (req, res) => {
   const category = req.query.category;
   let query = { email: email };
 
-
   if (search) {
     query.$or = [
       { doctorName: { $regex: search, $options: "i" } },
