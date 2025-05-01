@@ -131,9 +131,15 @@ router.get("/department", async (req, res) => {
     if (!department) {
       return res.status(400).json({ error: "Department is required" });
     }
+
+    if(department==="all") {
+        const allReview = await reviewCollection.find().toArray()
+        res.send(allReview)
+        return
+    }
   
     const reviews = await reviewCollection
-      .find({ department: department.toString().toLowerCase() }) // optional: ensure lowercase match
+      .find({ department: department.toString().toLowerCase() })
       .toArray();
   
     res.send(reviews);
