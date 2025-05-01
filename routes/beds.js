@@ -99,5 +99,45 @@ router.delete("/delete/:id", async (req, res) => {
     }
 });
 
+// update bed infi 
+
+router.put("/:id", async (req, res) => {
+    try {
+        const id = req.params.id
+        const updatedBedData = req.body
+
+        delete updatedBedData._id;
+
+        const filter = {
+            _id: new ObjectId(id)
+        }
+
+        const updateDoc = {
+            $set: updatedBedData
+        }
+
+        const options = {
+            upsert: true
+        }
+
+        const result = await bedsCollection.updateOne(filter, updateDoc, options)
+
+        if (!result) {
+            return res.status(404).json({
+                error: 'Blog not found.'
+            });
+        }
+
+        res.send({
+            result: result,
+            message: "Bed Updated Successfully"
+        })
+    } catch (error) {
+        res.status(500).json({
+            error: error.message
+        });
+    }
+})
+
 
 export default router;
