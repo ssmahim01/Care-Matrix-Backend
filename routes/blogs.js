@@ -93,8 +93,7 @@ router.put('/:id', async (req, res) => {
         const id = req.params.id;
         const updatedBlogData = req.body;
 
-        // Prevent updating the _id field
-        delete updatedBlogData._id;
+       
 
         const filter = {
             _id: new ObjectId(id)
