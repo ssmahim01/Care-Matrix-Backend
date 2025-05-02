@@ -7,9 +7,9 @@ const router = express.Router();
 // Get available rewards
 router.get("/available-rewards", async (req, res) => {
     const predefinedRewards = [
-        { _id: "1", name: "Cafeteria Voucher", pointsRequired: 50 },
-        { _id: "2", name: "Priority Appointment", pointsRequired: 100 },
-        { _id: "3", name: "Wellness Kit", pointsRequired: 75 },
+        { _id: "1", name:"Basic", offer: "Get 5% discount for your next appointment", pointsRequired: 50 },
+        { _id: "2", name:"Premium", offer:"Get 8% discount for your next appointment", pointsRequired: 75 },
+        { _id: "3", name:"Elite", offer:"Get 10% discount for your next appointment", pointsRequired: 100 },
     ];
     res.send({ success: true, rewards: predefinedRewards });
 }); // API endpoint -> /rewards/available-rewards
