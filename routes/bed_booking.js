@@ -151,7 +151,9 @@ router.get("/search", async (req, res) => {
             });
         }
 
-       
+        const results = await bed_bookingCollection.find(query).sort({
+            time: -1
+        }).toArray();
         
         if (results.length === 0) {
             return res.status(404).json({
