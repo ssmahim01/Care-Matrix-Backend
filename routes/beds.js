@@ -157,7 +157,12 @@ router.get("/search", async (req, res) => {
 
         const results = await bedsCollection.find(query).toArray();
         
-       
+        if (results.length === 0) {
+            return res.status(404).json({
+                message: "No beds found with the given title"
+            });
+        }
+
         res.json(results);
     } catch (error) {
         res.status(500).json({
