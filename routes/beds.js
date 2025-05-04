@@ -139,7 +139,7 @@ router.put("/:id", async (req, res) => {
     }
 })
 
-// bed search by title 
+
 // search beds by title
 router.get("/search", async (req, res) => {
     try {
