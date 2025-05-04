@@ -118,28 +118,44 @@ router.delete("/delete/:id", async (req, res) => {
     }
 });
 
-// search bed bookings by title
+// search bed bookings by bedTitle, patientName, or contactNumber
 router.get("/search", async (req, res) => {
     try {
-        const { title } = req.query;
+        const { bedTitle, patientName, contactNumber } = req.query;
         
-        if (!title) {
+        if (!bedTitle && !patientName && !contactNumber) {
             return res.status(400).json({
-                error: "Title query parameter is required"
+                error: "At least one of bedTitle, patientName, or contactNumber query parameters is required"
             });
         }
 
         const query = {
-            title: { $regex: title, $options: 'i' } // case-insensitive search
+            $or: []
         };
 
-        const results = await bed_bookingCollection.find(query).sort({
-            time: -1
-        }).toArray();
+        if (bedTitle) {
+            query.$or.push({
+                bedTitle: { $regex: bedTitle, $options: 'i' } // case-insensitive search
+            });
+        }
+
+        if (patientName) {
+            query.$or.push({
+                patientName: { $regex: patientName, $options: 'i' } // case-insensitive search
+            });
+        }
+
+        if (contactNumber) {
+            query.$or.push({
+                contactNumber: contactNumber // exact match for contact number
+            });
+        }
+
+       
         
         if (results.length === 0) {
             return res.status(404).json({
-                message: "No bed bookings found with the given title"
+                message: "No bed bookings found with the given bed title, patient name, or contact number"
             });
         }
 
@@ -149,7 +165,7 @@ router.get("/search", async (req, res) => {
             error: "Failed to search bed bookings: " + error.message
         });
     }
-});
+});;
 
 
 
