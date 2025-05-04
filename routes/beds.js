@@ -140,4 +140,37 @@ router.put("/:id", async (req, res) => {
 })
 
 
+// search beds by title
+router.get("/search", async (req, res) => {
+    try {
+        const { title } = req.query;
+        
+        if (!title) {
+            return res.status(400).json({
+                error: "Title query parameter is required"
+            });
+        }
+
+        const query = {
+            title: { $regex: title, $options: 'i' } // case-insensitive search
+        };
+
+        const results = await bedsCollection.find(query).toArray();
+        
+        if (results.length === 0) {
+            return res.status(404).json({
+                message: "No beds found with the given title"
+            });
+        }
+
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to search beds: " + error.message
+        });
+    }
+});
+
+
+
 export default router;

@@ -207,4 +207,17 @@ router.get("/:email", async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 export default router;

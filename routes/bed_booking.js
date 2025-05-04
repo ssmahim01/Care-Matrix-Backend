@@ -118,6 +118,59 @@ router.delete("/delete/:id", async (req, res) => {
     }
 });
 
+// search bed bookings by bedTitle, patientName, or contactNumber
+router.get("/search", async (req, res) => {
+    try {
+        const { bedTitle, patientName, contactNumber } = req.query;
+        
+        if (!bedTitle && !patientName && !contactNumber) {
+            return res.status(400).json({
+                error: "At least one of bedTitle, patientName, or contactNumber query parameters is required"
+            });
+        }
+
+        const query = {
+            $or: []
+        };
+
+        if (bedTitle) {
+            query.$or.push({
+                bedTitle: { $regex: bedTitle, $options: 'i' } // case-insensitive search
+            });
+        }
+
+        if (patientName) {
+            query.$or.push({
+                patientName: { $regex: patientName, $options: 'i' } // case-insensitive search
+            });
+        }
+
+        if (contactNumber) {
+            query.$or.push({
+                contactNumber: contactNumber // exact match for contact number
+            });
+        }
+
+        const results = await bed_bookingCollection.find(query).sort({
+            time: -1
+        }).toArray();
+        
+        if (results.length === 0) {
+            return res.status(404).json({
+                message: "No bed bookings found with the given bed title, patient name, or contact number"
+            });
+        }
+
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({
+            error: "Failed to search bed bookings: " + error.message
+        });
+    }
+});;
+
+
+
 
 
 export default router;
