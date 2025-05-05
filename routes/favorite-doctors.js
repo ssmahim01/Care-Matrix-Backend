@@ -29,7 +29,24 @@ await initDoctorCollection();
 router.get("/:email", async (req, res) => {
   const email = req.params.email;
   const query = { email: email };
-  const result = await favoriteDoctorsCollection.find(query).toArray();
+
+  const projection = {
+    email: 1,
+    "doctorInfo._id": 1,
+    "doctorInfo.name": 1,
+    "doctorInfo.title": 1,
+    "doctorInfo.image": 1,
+    "doctorInfo.experience": 1,
+    "doctorInfo.available_days": 1,
+    "doctorInfo.consultation_fee": 1,
+    "doctorInfo.rating": 1,
+  };
+
+  const result = await favoriteDoctorsCollection
+    .find(query)
+    .project(projection)
+    .toArray();
+
   res.send(result);
 });
 
